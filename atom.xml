@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>Gridea</title>
-    <updated>2019-11-11T12:24:19.497Z</updated>
+    <updated>2019-11-12T12:22:24.242Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
@@ -11,12 +11,20 @@
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2019, Gridea</rights>
     <entry>
-        <title type="html"><![CDATA[测试]]></title>
+        <title type="html"><![CDATA[Hadoop]]></title>
         <id>https://liuwenlu12.github.io//post/ce-shi</id>
         <link href="https://liuwenlu12.github.io//post/ce-shi">
         </link>
         <updated>2019-11-11T12:23:57.000Z</updated>
-        <content type="html"><![CDATA[<h3 id="哈哈">哈哈</h3>
+        <content type="html"><![CDATA[<p>###大数据概念</p>
+<ul>
+<li>大数据：指无法在一定时间范围内用常规软件工具进行捕捉、管理和处理的数据集合,是需要新处理模式才能具有更强的决策力、洞察发现力和流程优化能力的<strong>海量、高增长率和多样化的信息资产</strong>。</li>
+<li>数据存储单位：bit、byte、KB、MB、GB、TB、PB、EB、ZB、YB、BB、NB、DB。（1byte =8bit,1k=1024byte,1MB=1024K,1G=1024M,1T=1024G,1P=1024T）</li>
+<li>主要解决、海量数据的存储和海量数据的分析计算问题。</li>
+<li>大数据特点：1. 大量 2. 高速 3. 多样 4. 低价值密度<br>
+<img src="https://liuwenlu12.github.io//post-images/1573559807172.png" alt=""></li>
+<li>优势：1. 高可靠性 2. 高扩展性 3. 高效性 4. 高容错性</li>
+</ul>
 ]]></content>
     </entry>
     <entry>
