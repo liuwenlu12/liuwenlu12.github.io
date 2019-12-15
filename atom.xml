@@ -2,11 +2,12 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2019-12-15T14:22:13.614Z</updated>
+    <updated>2019-12-15T14:23:29.961Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
-    <subtitle>温故而知新</subtitle>
+    <subtitle>希望你过得比谁都好，希望我永远不知道
+</subtitle>
     <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2019, 刘文路的博客</rights>
