@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2020-02-26T14:20:30.205Z</updated>
+    <updated>2020-02-26T14:29:51.448Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
@@ -10,6 +10,60 @@
     <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2020, 刘文路的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[sparkStreaming处理完数据写入redis]]></title>
+        <id>https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis</id>
+        <link href="https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis">
+        </link>
+        <updated>2020-02-26T14:27:36.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="redisutil">RedisUtil</h4>
+<pre><code>package com.atguigu.day02.project.util
+
+import redis.clients.jedis.Jedis
+
+object RedisUtil {
+  /**
+   * 两种方式：
+   * 1.使用连接池
+   * 效率更高 连接会重用
+   * 实际情况 容易出现多线程bug
+   * 2.手动创建连接的客户端对象
+   * 用完务必关闭
+   */
+  val host = &quot;lwl007&quot;
+  val port = 6379
+    //获取客户端对象
+  def getClient = new Jedis(host, port)
+    //关闭客户端
+  def close(client: Jedis): Unit = {
+    if (client != null) client.close()
+  }
+}
+
+</code></pre>
+<h4 id="数据写入">数据写入</h4>
+<pre><code>  import org.json4s.JsonDSL._    //scala自带转json
+    import scala.collection.JavaConversions._  //scala和java集合互转
+    val key =&quot;last:hour:ads&quot;
+    adsIdAndHmCountIt.foreachRDD(rdd=&gt;{
+      rdd.foreachPartition((it: Iterator[(String, Iterable[(String, Int)])]) =&gt;{
+        //建立连接
+        val client: Jedis = RedisUtil.getClient
+        //写入数据
+
+        if(it.hasNext){
+          val map: Map[String, String] = it.map {
+            case (adsId, hmCountIt) =&gt; {
+              (adsId, JsonMethods.compact(JsonMethods.render(hmCountIt)))
+            }
+          }.toMap
+          client.hmset(key,map)
+        }
+      })
+    })
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[迭代器]]></title>
         <id>https://liuwenlu12.github.io//post/die-dai-qi</id>
@@ -34,7 +88,7 @@ List()
 List()
 </code></pre>
 <h4 id="迭代器独有">迭代器独有</h4>
-<pre><code>  if(it.hasNext){
+<pre><code>  if(it.hasNext){  //it.next
           println(it.toList)
         }
 </code></pre>

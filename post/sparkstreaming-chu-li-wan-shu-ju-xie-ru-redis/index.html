@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>刘文路的博客</title>
+<title>sparkStreaming处理完数据写入redis | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
 <link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1582727389502">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -70,84 +70,107 @@
   </div>
 </div>
 
-    
-        <div class="post-container">
-  
-    <article class="post">
-      <a href="https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis">
-        <h2 class="post-title">sparkStreaming处理完数据写入redis</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          2020-02-26
-        </span>
-        <span>
-          1 min read
-        </span>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://liuwenlu12.github.io//post/die-dai-qi">
-        <h2 class="post-title">迭代器</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          2020-02-26
-        </span>
-        <span>
-          1 min read
-        </span>
-        
-      </div>
-      
-      <div class="post-abstract">
-        
-      </div>
-    </article>
-  
-    <article class="post">
-      <a href="https://liuwenlu12.github.io//post/hello-gridea">
-        <h2 class="post-title">Hello Gridea</h2>
-      </a>
-      <div class="post-info">
-        <span>
-          2018-12-12
-        </span>
-        <span>
-          2 min read
-        </span>
-        
-          <a href="https://liuwenlu12.github.io//tag/UB108D75d" class="post-tag">
-            # Gridea
-          </a>
-        
-      </div>
-      
-        <a href="https://liuwenlu12.github.io//post/hello-gridea" class="post-feature-image" style="background-image: url('https://liuwenlu12.github.io//post-images/hello-gridea.png')">
-        </a>
-      
-      <div class="post-abstract">
-        <p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
-✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              sparkStreaming处理完数据写入redis
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-02-26
+              </span>
+              <span>
+                1 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h4 id="redisutil">RedisUtil</h4>
+<pre><code>package com.atguigu.day02.project.util
 
-      </div>
-    </article>
-  
-</div>
+import redis.clients.jedis.Jedis
 
-    
-        <div class="pagination-container">
-  
-  
-</div>
+object RedisUtil {
+  /**
+   * 两种方式：
+   * 1.使用连接池
+   * 效率更高 连接会重用
+   * 实际情况 容易出现多线程bug
+   * 2.手动创建连接的客户端对象
+   * 用完务必关闭
+   */
+  val host = &quot;lwl007&quot;
+  val port = 6379
+    //获取客户端对象
+  def getClient = new Jedis(host, port)
+    //关闭客户端
+  def close(client: Jedis): Unit = {
+    if (client != null) client.close()
+  }
+}
 
-    
+</code></pre>
+<h4 id="数据写入">数据写入</h4>
+<pre><code>  import org.json4s.JsonDSL._    //scala自带转json
+    import scala.collection.JavaConversions._  //scala和java集合互转
+    val key =&quot;last:hour:ads&quot;
+    adsIdAndHmCountIt.foreachRDD(rdd=&gt;{
+      rdd.foreachPartition((it: Iterator[(String, Iterable[(String, Int)])]) =&gt;{
+        //建立连接
+        val client: Jedis = RedisUtil.getClient
+        //写入数据
+
+        if(it.hasNext){
+          val map: Map[String, String] = it.map {
+            case (adsId, hmCountIt) =&gt; {
+              (adsId, JsonMethods.compact(JsonMethods.render(hmCountIt)))
+            }
+          }.toMap
+          client.hmset(key,map)
+        }
+      })
+    })
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#redisutil">RedisUtil</a></li>
+<li><a href="#%E6%95%B0%E6%8D%AE%E5%86%99%E5%85%A5">数据写入</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://liuwenlu12.github.io//post/die-dai-qi">
+              <h3 class="post-title">
+                迭代器
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
         <div class="site-footer">
   Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | 
   <a class="rss" href="https://liuwenlu12.github.io//atom.xml" target="_blank">RSS</a>
