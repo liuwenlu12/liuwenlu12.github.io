@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2020-02-26T08:06:50.742Z</updated>
+    <updated>2020-02-26T14:18:17.820Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
@@ -10,6 +10,31 @@
     <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2020, 刘文路的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[迭代器]]></title>
+        <id>https://liuwenlu12.github.io//post/die-dai-qi</id>
+        <link href="https://liuwenlu12.github.io//post/die-dai-qi">
+        </link>
+        <updated>2020-02-26T14:13:40.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="他们是一种惰性数据结构并且他们数据只能使用一次">他们是一种惰性数据结构，并且他们数据只能使用一次</h4>
+<pre><code> rdd.foreachPartition((it: Iterator[(String, Iterable[(String, Int)])]) =&gt;{
+        //建立连接
+        val client: Jedis = RedisUtil.getClient
+        //写入数据
+        //Iterrator
+        if(it.size&gt;0){
+          println(it.toList)
+        }
+      })
+</code></pre>
+<h4 id="结果">结果</h4>
+<pre><code>List()
+List()
+List()
+List()
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
         <id>https://liuwenlu12.github.io//post/hello-gridea</id>
