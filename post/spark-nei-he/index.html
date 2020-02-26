@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SparkStreaming处理完数据写入redis | 刘文路的博客</title>
+<title>Spark内核 | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
 <link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1582740525056">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -73,68 +73,68 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              SparkStreaming处理完数据写入redis
+              Spark内核
             </h2>
             <div class="post-info">
               <span>
                 2020-02-26
               </span>
               <span>
-                2 min read
+                3 min read
               </span>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <h4 id="redisutil">RedisUtil</h4>
-<pre><code>package com.atguigu.day02.project.util
-
-import redis.clients.jedis.Jedis
-
-object RedisUtil {
-  /**
-   * 两种方式：
-   * 1.使用连接池
-   * 效率更高 连接会重用
-   * 实际情况 容易出现多线程bug
-   * 2.手动创建连接的客户端对象
-   * 用完务必关闭
-   */
-  val host = &quot;lwl007&quot;
-  val port = 6379
-    //获取客户端对象
-  def getClient = new Jedis(host, port)
-    //关闭客户端
-  def close(client: Jedis): Unit = {
-    if (client != null) client.close()
-  }
-}
-
-</code></pre>
-<h4 id="数据写入">数据写入</h4>
-<pre><code>    import org.json4s.JsonDSL._ //scala自带转json
-    import scala.collection.JavaConversions._ //scala和java集合互转
-    val key = &quot;last:hour:ads&quot;
-    adsIdAndHmCountIt.foreachRDD(rdd =&gt; {
-      rdd.foreachPartition((it: Iterator[(String, Iterable[(String, Int)])]) =&gt; {
-        //写入数据
-        if (it.hasNext) {
-          //建立连接
-          val client: Jedis = RedisUtil.getClient
-          val map: Map[String, String] = it.map {
-            case (adsId, hmCountIt) =&gt; {
-              //不加toMap [{},{}]  加toMap{K1:V1,K2:V2}
-              val hmCountItToMap: Map[String, Int] = hmCountIt.toMap
-              (adsId, JsonMethods.compact(JsonMethods.render(hmCountItToMap)))
-            }
-          }.toMap
-          client.hmset(key, map)
-          RedisUtil.close(client)
-        }
-      })
-    })
-</code></pre>
+                <h3 id="spark核心组件">Spark核心组件</h3>
+<ol>
+<li>Cluster Manager (分配的资源属于一级分配, 它将各个 Worker 上的内存, CPU 等资源分配给 Application, 但并不负责对 Executor 的资源的分配)
+<ol>
+<li>Master  (Standalone)</li>
+<li>ResourceManager (Yarn)</li>
+<li>MesosMaster (Mesos)</li>
+<li>Kubernetes  2.3.0新增 (docker配合)</li>
+</ol>
+</li>
+<li>Worker (工作节点 在 Yarn 部署模式下实际由 NodeManager 替代)
+<ol>
+<li>将自己的内存, CPU 等资源通过注册机制告知 Cluster Manager</li>
+<li>创建 Executor进程</li>
+<li>将资源和任务进一步分配给 Executor</li>
+<li>同步资源信息, Executor 状态信息给 ClusterManager 等.</li>
+</ol>
+</li>
+<li>Driver (Spark 驱动器节点，用于执行 Spark 任务中的 main 方法，负责实际代码的执行工作)
+<ol>
+<li>将用户程序转化为作业（Job）；</li>
+<li>在 Executor 之间调度任务（Task）；</li>
+<li>跟踪 Executor 的执行情况；</li>
+<li>通过 UI 展示查询运行情况；</li>
+</ol>
+</li>
+<li>Executor (Spark Executor 节点是负责在 Spark 作业中运行具体任务，任务彼此之间相互独立)        Spark 应用启动时，Executor 节点被同时启动，并且始终伴随着整个 Spark 应用的生命周期而存在。<br>
+如果有 Executor 节点发生了故障或崩溃，Spark 应用也可以继续执行，会将出错节点上的任务调度到其他 Executor 节点上继续运行。<br>
+Executor 有两个核心功能：</li>
+<li>负责运行组成 Spark 应用的任务，并将结果返回给驱动器（Driver）；</li>
+<li>它们通过自身的块管理器（Block Manager）为用户程序中要求缓存的 RDD 提供内存式存储。RDD 的数据是直接缓存在 Executor 进程内的，因此任务可以在运行时充分利用缓存数据加速运算。</li>
+<li>Application<br>
+• Application 通过 Spark API 将进行 RDD 的转换和 DAG 的构建, 并通过 Driver 将 Application 注册到 Cluster Manager.<br>
+•	Cluster Manager 将会根据 Application 的资源需求, 通过一级分配将 Executor, 内存, CPU 等资源分配给 Application.<br>
+•	Driver 通过二级分配将 Executor 等资源分配给每一个任务, Application 最后通过 Driver 告诉 Executor 运行任务</li>
+</ol>
+<h5 id="4040端口-driver">4040端口-&gt;Driver</h5>
+<h5 id="8080端口-master">8080端口-&gt;Master</h5>
+<h5 id="8081端口-worker">8081端口-&gt;Worker</h5>
+<h3 id="spark-通用运行流程概述">Spark 通用运行流程概述</h3>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582730179336.png" alt=""></figure>
+<ol>
+<li>任务提交后，都会先启动 Driver 程序；</li>
+<li>随后 Driver 向集群管理器注册应用程序；</li>
+<li>之后集群管理器根据此任务的配置文件分配 Executor 并启动该应用程序；</li>
+<li>当 Driver 所需的资源全部满足后，Driver 开始执行 main 函数，Spark 转换为懒执行，当执行到 Action 算子时开始反向推算，根据宽依赖进行 Stage 的划分，随后每一个 Stage 对应一个 Taskset，Taskset 中有多个Task；</li>
+<li>根据本地化原则，Task 会被分发到指定的 Executor 去执行，在任务执行的过程中，Executor 也会不断与 Driver 进行通信，报告任务运行情况。</li>
+</ol>
 
               </div>
               <div class="toc-container">
@@ -143,12 +143,15 @@ object RedisUtil {
 <ul>
 <li>
 <ul>
-<li>
+<li><a href="#spark%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6">Spark核心组件</a><br>
+*
 <ul>
-<li><a href="#redisutil">RedisUtil</a></li>
-<li><a href="#%E6%95%B0%E6%8D%AE%E5%86%99%E5%85%A5">数据写入</a></li>
+<li><a href="#4040%E7%AB%AF%E5%8F%A3-driver">4040端口-&gt;Driver</a></li>
+<li><a href="#8080%E7%AB%AF%E5%8F%A3-master">8080端口-&gt;Master</a></li>
+<li><a href="#8081%E7%AB%AF%E5%8F%A3-worker">8081端口-&gt;Worker</a></li>
 </ul>
 </li>
+<li><a href="#spark-%E9%80%9A%E7%94%A8%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B%E6%A6%82%E8%BF%B0">Spark 通用运行流程概述</a></li>
 </ul>
 </li>
 </ul>
@@ -163,9 +166,9 @@ object RedisUtil {
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://liuwenlu12.github.io//post/die-dai-qi">
+            <a href="https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis">
               <h3 class="post-title">
-                迭代器
+                SparkStreaming处理完数据写入redis
               </h3>
             </a>
           </div>
