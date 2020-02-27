@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2020-02-27T16:55:11.631Z</updated>
+    <updated>2020-02-27T17:18:47.633Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
@@ -10,6 +10,34 @@
     <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2020, 刘文路的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Spark Shuffle 解析]]></title>
+        <id>https://liuwenlu12.github.io//post/spark-shuffle-jie-xi</id>
+        <link href="https://liuwenlu12.github.io//post/spark-shuffle-jie-xi">
+        </link>
+        <updated>2020-02-27T17:07:56.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="未优化的hashshuffle">未优化的HashShuffle</h4>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582823385827.png" alt=""></figure>
+<p>缺点:</p>
+<ol>
+<li>map 任务的中间结果首先存入内存(缓存), 然后才写入磁盘. 这对于内存的开销很大, 当一个节点上 map 任务的输出结果集很大时, 很容易导致内存紧张, 发生 OOM</li>
+<li>生成很多的小文件. 假设有 M 个 MapTask, 有 N 个 ReduceTask, 则会创建 M * n 个小文件, 磁盘 I/O 将成为性能瓶颈.</li>
+</ol>
+<h4 id="优化的hashshuffle">优化的HashShuffle</h4>
+<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582823456943.png" alt=""></figure>
+<p>优化的 HashShuffle 过程就是启用合并机制，合并机制就是复用buffer，开启合并机制的配置是spark.shuffle.consolidateFiles。该参数默认值为false，将其设置为true即可开启优化机制。通常来说，如果我们使用HashShuffleManager，那么都建议开启这个选项。</p>
+<h4 id="sortshuffle-解析">SortShuffle 解析</h4>
+<p>普通 SortShuffle<br>
+<img src="https://liuwenlu12.github.io//post-images/1582823873456.png" alt=""></p>
+<p>bypassSortShuffle<br>
+<img src="https://liuwenlu12.github.io//post-images/1582823904849.png" alt=""></p>
+<p>bypass运行机制的触发条件如下(必须同时满足)：</p>
+<ol>
+<li>shuffle map task数量小于spark.shuffle.sort.bypassMergeThreshold参数的值，默认为200。</li>
+<li>不是聚合类的shuffle算子(没有预聚合)（比如groupByKey）。</li>
+</ol>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Spark 任务调度机制]]></title>
         <id>https://liuwenlu12.github.io//post/spark-ren-wu-diao-du-ji-zhi</id>
@@ -97,6 +125,9 @@ val sc = new SparkContext(conf)
 </tr>
 </tbody>
 </table>
+<h3 id="失败重试和黑名单">失败重试和黑名单</h3>
+<p>在记录Task失败次数过程中，会记录它上一次失败所在的Executor Id和Host，这样下次再调度这个Task时，会使用黑名单机制，避免它被调度到上一次失败的节点上，起到一定的容错作用。黑名单记录Task上一次失败所在的Executor Id和Host，以及其对应的“拉黑”时间，<br>
+“拉黑”时间是指这段时间内不要再往这个节点上调度这个Task了。</p>
 ]]></content>
     </entry>
     <entry>
