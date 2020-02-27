@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2020-02-26T18:10:18.831Z</updated>
+    <updated>2020-02-27T10:43:45.592Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
@@ -10,6 +10,184 @@
     <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2020, 刘文路的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Spark 部署模式]]></title>
+        <id>https://liuwenlu12.github.io//post/spark-bu-shu-mo-shi</id>
+        <link href="https://liuwenlu12.github.io//post/spark-bu-shu-mo-shi">
+        </link>
+        <updated>2020-02-27T08:13:12.000Z</updated>
+        <content type="html"><![CDATA[<p>Spark支持3种集群管理器（Cluster Manager），分别为：</p>
+<ol>
+<li>Standalone：独立模式，Spark 原生的简单集群管理器，自带完整的服务，可单独部署到一个集群中，无需依赖任何其他资源管理系统，使用 Standalone 可以很方便地搭建一个集群；</li>
+<li>Hadoop YARN：统一的资源管理机制，在上面可以运行多套计算框架，如 MR、Storm等。根据 Driver 在集群中的位置不同，分为 yarn client 和 yarn cluster；</li>
+<li>Apache Mesos：一个强大的分布式资源管理框架，它允许多种不同的框架部署在其上，包括 Yarn。</li>
+</ol>
+<h3 id="yarn-cluster-模式">YARN Cluster 模式</h3>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582794556881.png" alt=""></figure>
+<ol>
+<li>执行脚本提交任务，实际是启动一个 SparkSubmit 的 JVM 进程；</li>
+<li>SparkSubmit 类中的 main方法反射调用Client的main方法；</li>
+<li>Client创建Yarn客户端，然后向Yarn发送执行指令：bin/java ApplicationMaster；</li>
+<li>Yarn框架收到指令后会在指定的NM中启动ApplicationMaster；</li>
+<li>ApplicationMaster启动Driver线程，执行用户的作业；</li>
+<li>AM向RM注册，申请资源；</li>
+<li>获取资源后AM向NM发送指令：bin/java CoarseGrainedExecutorBacken；</li>
+<li>启动ExecutorBackend, 并向driver注册.</li>
+<li>注册成功后, ExecutorBackend会创建一个Executor对象.</li>
+<li>Driver会给ExecutorBackend分配任务, 并监控任务的执行.<br>
+注意:<br>
+•	SparkSubmit、ApplicationMaster和CoarseGrainedExecutorBacken是独立的进程；<br>
+•	Client和Driver是独立的线程；<br>
+•	Executor是一个对象。</li>
+</ol>
+<pre><code>cluster: 
+bin/spark-submit \                                             
+--class org.apache.spark.examples.SparkPi \
+--master yarn \
+--deploy-mode cluster \
+./examples/jars/spark-examples_2.11-2.1.1.jar 1000
+
+-------
+SparkSubmit
+ApplicationMaster
+CoarseGrainedExecutorBackend
+--------
+
+SparkSubmit
+    org.apache.spark.deploy.SparkSubmit
+
+
+    if (deployMode == CLIENT || isYarnCluster) {
+            // 如果是客户端模式, childMainClass 就是用户的类
+            // 集群模式下, childMainClass 被重新赋值为 org.apache.spark.deploy.yarn.Client
+            childMainClass = args.mainClass  // 用户主类
+            if (isUserJar(args.primaryResource)) {
+                childClasspath += args.primaryResource
+            }
+            if (args.jars != null) {
+                childClasspath ++= args.jars.split(&quot;,&quot;)
+            }
+        }
+    if (isYarnCluster) {
+            // 在 yarn 集群模式下, 使用yarn.Client来封装一下 user class
+            childMainClass = &quot;org.apache.spark.deploy.yarn.Client&quot;
+            if (args.isPython) {
+                childArgs += (&quot;--primary-py-file&quot;, args.primaryResource)
+                childArgs += (&quot;--class&quot;, &quot;org.apache.spark.deploy.PythonRunner&quot;)
+            } else if (args.isR) {
+                val mainFile = new Path(args.primaryResource).getName
+                childArgs += (&quot;--primary-r-file&quot;, mainFile)
+                childArgs += (&quot;--class&quot;, &quot;org.apache.spark.deploy.RRunner&quot;)
+            } else {
+                if (args.primaryResource != SparkLauncher.NO_RESOURCE) {
+                    childArgs += (&quot;--jar&quot;, args.primaryResource)
+                }
+                childArgs += (&quot;--class&quot;, args.mainClass)
+            }
+            if (args.childArgs != null) {
+                args.childArgs.foreach { arg =&gt; childArgs += (&quot;--arg&quot;, arg) }
+            }
+        }
+
+        childMainClass = &quot;org.apache.spark.deploy.yarn.Client&quot;
+            submitApplication()
+
+        // 核心代码: 确定 ApplicationMaster 类
+        val amClass =
+            if (isClusterMode) { // 如果是 cluster 模式
+                Utils.classForName(&quot;org.apache.spark.deploy.yarn.ApplicationMaster&quot;).getName
+            } else { // 如果是 client 模式
+                Utils.classForName(&quot;org.apache.spark.deploy.yarn.ExecutorLauncher&quot;).getName
+            }
+
+        yarnClient.submitApplication(appContext)
+
+        spark-submit进程执行完毕
+
+ApplicationMaster
+        runDriver()
+        注册AM 让NM要启动的类
+        org.apache.spark.executor.CoarseGrainedExecutorBackend
+
+        执行完毕, 但是AM并不会退出,  dirverThread.join()
+CoarseGrainedExecutorBackend
+        executor进程
+        // 获取到 driver 的 RpcEndpointRef  (DriverEndpoint是在sparkContext中创建)
+            val driver: RpcEndpointRef = fetcher.setupEndpointRefByURI(driverUrl)
+
+        ref.ask[Boolean](RegisterExecutor(executorId, self, hostname, cores, extractLogUrls))
+
+        driver端:
+            executorRef.send(RegisteredExecutor)
+        executor端:
+            executor = new Executor(executorId, hostname, env, userClassPath, isLocal = false)
+
+</code></pre>
+<h3 id="yarn-client-模式">Yarn Client 模式</h3>
+<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582800089613.png" alt=""></figure>
+<ol>
+<li>执行脚本提交任务，实际是启动一个SparkSubmit的 JVM 进程；</li>
+<li>SparkSubmit伴生对象中的main方法反射调用用户代码的main方法；</li>
+<li>启动Driver线程，执行用户的作业，并创建ScheduleBackend；</li>
+<li>YarnClientSchedulerBackend向RM发送指令：bin/java ExecutorLauncher；</li>
+<li>Yarn框架收到指令后会在指定的NM中启动ExecutorLauncher（实际上还是调用ApplicationMaster的main方法）；</li>
+</ol>
+<pre><code>object ExecutorLauncher {
+  def main(args: Array[String]): Unit = {
+    ApplicationMaster.main(args)
+  }
+}
+</code></pre>
+<ol start="6">
+<li>AM向RM注册，申请资源；</li>
+<li>获取资源后AM向NM发送指令：bin/java CoarseGrainedExecutorBacken；</li>
+<li>后面和cluster模式一致<br>
+注意：</li>
+</ol>
+<ul>
+<li>SparkSubmit、ExecutorLauncher和CoarseGrainedExecutorBacken是独立的进程；</li>
+<li>driver不是一个子线程,而是直接运行在SparkSubmit进程的main线程中, 所以sparkSubmit进程不能退出.</li>
+</ul>
+<pre><code>bin/spark-submit \                                            
+--class org.apache.spark.examples.SparkPi \
+--master yarn \
+--deploy-mode client \
+./examples/jars/spark-examples_2.11-2.1.1.jar 1000
+
+------
+SparkSubmit
+ExecutorLauncher  (am)
+CoarseGrainedExecutorBackend
+
+SparkSubmit
+    childMainClass = args.mainClass  // 用户主类
+
+    执行用户类的main方法(执行driver)
+        是在SparkSubmit的主线程中执行
+        (cluster 模式driver跟着: am, am启动了一个子线程)
+
+    用户类里面, 首先就是在创建和初始化SaprkContext
+
+    SparkContext的初始化:
+        val (sched, ts): (SchedulerBackend, TaskScheduler) = SparkContext.createTaskScheduler(this, master, deployMode)
+        
+        _ts.start()
+            backend.start()  
+            CoarseGrainedSchedulerBackend: start
+                driverEndpoint = createDriverEndpointRef(properties)
+
+            client.submitApplication
+
+                org.apache.spark.deploy.yarn.ExecutorLauncher
+
+
+            启动DrvierEndPoint
+                makeOffers
+                    launchTasks(scheduler.resourceOffers(workOffers))
+
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[笔记]]></title>
         <id>https://liuwenlu12.github.io//post/bi-ji</id>
