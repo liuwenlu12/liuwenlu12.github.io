@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Spark 部署模式及源码分析 | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
-<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1582825932700">
+<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1582826078259">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://liuwenlu12.github.io//styles/main.css">
@@ -20,7 +20,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://liuwenlu12.github.io/">
-  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1582825932700" alt="">
+  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1582826078259" alt="">
   </a>
   <h1 class="site-title">
     刘文路的博客
@@ -195,7 +195,7 @@ CoarseGrainedExecutorBackend
 
 </code></pre>
 <blockquote>
-<p>概述：脚本在客户端上提交执行，执行SparkSubmit的main方法，会反射一个cilent类，执行client的main方法，然后封装一个指令(bin/java Application)交给RM,RM会选择一台NodeManager启动AM,AM会运行Driver(运行用户类的main方法),同时AM会向RM申请资源和容器,封装并且发送指令,让其他NodeManager启动ExecutorBackend进程,ExecutorBackend进程会向Driver进行反向注册(RegisterExecutor),Driver返回一个成功注册的信息,Executor进程会创建一个Executor对象,之后进行任务分配</p>
+<p>Cluster 模式概述：脚本在客户端上提交执行，执行SparkSubmit的main方法，会反射一个cilent类，执行client的main方法，然后封装一个指令(bin/java Application)交给RM,RM会选择一台NodeManager启动AM,AM会运行Driver(运行用户类的main方法),同时AM会向RM申请资源和容器,封装并且发送指令,让其他NodeManager启动ExecutorBackend进程,ExecutorBackend进程会向Driver进行反向注册(RegisterExecutor),Driver返回一个成功注册的信息,Executor进程会创建一个Executor对象,之后进行任务分配</p>
 </blockquote>
 <p>SparkSubmit  Application ExecutorBackend三个进程</p>
 <h3 id="yarn-client-模式">Yarn Client 模式</h3>
@@ -262,7 +262,7 @@ SparkSubmit
 
 </code></pre>
 <blockquote>
-<p>Client模式概述：脚本submit提交  脚本启动后，执行SparkSubmit的main方法(同时Driver在SparkSubmit主线程中启动)，Driver的执行会初始化SchedulerBackend, TaskScheduler，YarnCilentSchedulerBackend中有个start方法封装一个bin/java ExcutorLauncher指令交给RM,RM会找一个NodeManager执行ExcutorLauncher(AM),ExcutorLauncher启动后会向RM申请资源，容器. 然后会根据资源和容器去分配NodeManager启动ExcutorBackend进程，向Driver注册(使用RegisterExecutor),返回注册成功之后，创建一个Executor对象，就可以分配任务。</p>
+<p>Client模式概述：脚本submit提交，脚本启动后，执行SparkSubmit的main方法(同时Driver在SparkSubmit主线程中启动)，Driver的执行会初始化SchedulerBackend, TaskScheduler，YarnCilentSchedulerBackend中有个start方法封装一个bin/java ExcutorLauncher指令交给RM,RM会找一个NodeManager执行ExcutorLauncher(AM),ExcutorLauncher启动后会向RM申请资源，容器. 然后会根据资源和容器去分配NodeManager启动ExcutorBackend进程，向Driver注册(使用RegisterExecutor),返回注册成功之后，创建一个Executor对象，就可以分配任务。</p>
 </blockquote>
 <h3 id="client模式-和-cluster模式的区别">Client模式 和 Cluster模式的区别</h3>
 <pre><code>1. spark-submit中反射childMainClass不同
