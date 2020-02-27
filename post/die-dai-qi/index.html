@@ -1,8 +1,8 @@
 <html>
   <head>
-  <meta charset="utf-8" />
+    <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>刘文路的博客</title>
+<title>迭代器 | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
 <link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1582800438225">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -70,12 +70,83 @@
   </div>
 </div>
 
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              迭代器
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-02-26
+              </span>
+              <span>
+                1 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h4 id="他们是一种惰性数据结构并且他们数据只能使用一次">他们是一种惰性数据结构，并且他们数据只能使用一次</h4>
+<pre><code> rdd.foreachPartition((it: Iterator[(String, Iterable[(String, Int)])]) =&gt;{
+        //建立连接
+        val client: Jedis = RedisUtil.getClient
+        //写入数据
+        //Iterrator
+        if(it.size&gt;0){
+          println(it.toList)
+        }
+      })
+</code></pre>
+<h4 id="结果">结果</h4>
+<pre><code>List()
+List()
+List()
+List()
+</code></pre>
+<h4 id="迭代器独有">迭代器独有</h4>
+<pre><code>  if(it.hasNext){  //it.next
+          println(it.toList)
+        }
+</code></pre>
 
-        <div class="tags-container">
-          
-            <a class="tag" href="https://liuwenlu12.github.io//tag/UB108D75d">Gridea</a>
-          
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E4%BB%96%E4%BB%AC%E6%98%AF%E4%B8%80%E7%A7%8D%E6%83%B0%E6%80%A7%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%B9%B6%E4%B8%94%E4%BB%96%E4%BB%AC%E6%95%B0%E6%8D%AE%E5%8F%AA%E8%83%BD%E4%BD%BF%E7%94%A8%E4%B8%80%E6%AC%A1">他们是一种惰性数据结构，并且他们数据只能使用一次</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C">结果</a></li>
+<li><a href="#%E8%BF%AD%E4%BB%A3%E5%99%A8%E7%8B%AC%E6%9C%89">迭代器独有</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
         </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://liuwenlu12.github.io//post/hello-gridea">
+              <h3 class="post-title">
+                Hello Gridea
+              </h3>
+            </a>
+          </div>
+        
+
+        
 
         <div class="site-footer">
   Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | 
