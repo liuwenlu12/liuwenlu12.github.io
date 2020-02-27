@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2020-02-27T11:10:04.141Z</updated>
+    <updated>2020-02-27T16:55:11.631Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
@@ -10,6 +10,95 @@
     <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2020, 刘文路的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Spark 任务调度机制]]></title>
+        <id>https://liuwenlu12.github.io//post/spark-ren-wu-diao-du-ji-zhi</id>
+        <link href="https://liuwenlu12.github.io//post/spark-ren-wu-diao-du-ji-zhi">
+        </link>
+        <updated>2020-02-27T14:44:47.000Z</updated>
+        <content type="html"><![CDATA[<p>当 Driver 起来后，Driver 则会根据用户程序逻辑准备任务，并根据Executor资源情况逐步分发任务。<br>
+在详细阐述任务调度前，首先说明下 Spark 里的几个概念。一个 Spark 应用程序包括Job、Stage以及Task三个概念：</p>
+<ol>
+<li>Job 是以 Action 算子为界，遇到一个Action算子则触发一个Job；</li>
+<li>Stage 是 Job 的子集，以 RDD 宽依赖(即 Shuffle )为界，遇到 Shuffle 做一次划分；</li>
+<li>Task 是 Stage 的子集，以并行度(分区数)来衡量，这个 Stage 分区数是多少，则这个Stage 就有多少个 Task。<br>
+Spark 的任务调度总体来说分两路进行，一路是 Stage 级的调度，一路是 Task 级的调度，总体调度流程如下图所示：</li>
+</ol>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582816815462.png" alt=""></figure>
+<p>Spark RDD 通过其 Transactions 操作，形成了RDD血缘关系图，即DAG，最后通过Action的调用，触发Job并调度执行。<br>
+DAGScheduler负责Stage级的调度，主要是将job切分成若干Stages，并将每个Stage打包成TaskSet交给TaskScheduler调度。<br>
+TaskScheduler负责Task级的调度，将DAGScheduler传过来的TaskSet按照指定的调度策略分发到Executor上执行，调度过程中SchedulerBackend负责提供可用资源，其中SchedulerBackend有多种实现，分别对接不同的资源管理系统。</p>
+<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582821511401.png" alt=""></figure>
+<p>Driver初始化SparkContext过程中，会分别初始化DAGScheduler、TaskScheduler、SchedulerBackend以及HeartbeatReceiver，并启动 SchedulerBackend以及HeartbeatReceiver。<br>
+SchedulerBackend通过ApplicationMaster申请资源，并不断从TaskScheduler中拿到合适的Task分发到Executor执行。<br>
+HeartbeatReceiver负责接收Executor的心跳信息，监控Executor的存活状况，并通知到TaskScheduler。</p>
+<h3 id="spark-stage-级别调度">Spark Stage 级别调度</h3>
+<figure data-type="image" tabindex="3"><img src="https://liuwenlu12.github.io//post-images/1582821547270.png" alt=""></figure>
+<ol>
+<li>Job 由最终的RDD和Action方法封装而成；</li>
+<li>SparkContext将Job交给DAGScheduler提交，它会根据RDD的血缘关系构成的DAG进行切分，将一个Job划分为若干Stages，具体划分策略是，由最终的RDD不断通过依赖回溯判断父依赖是否是宽依赖，即以Shuffle为界，划分Stage，窄依赖的RDD之间被划分到同一个Stage中，可以进行pipeline式的计算。</li>
+<li>划分的Stages分两类，一类叫做ResultStage，为DAG最下游的Stage，由Action方法决定，另一类叫做ShuffleMapStage，为下游Stage准备数据</li>
+</ol>
+<h3 id="spark-task-级别调度">Spark Task 级别调度</h3>
+<p>TaskSetManager结构如下图所示。<br>
+<img src="https://liuwenlu12.github.io//post-images/1582821601280.png" alt=""></p>
+<figure data-type="image" tabindex="4"><img src="https://liuwenlu12.github.io//post-images/1582821628549.png" alt=""></figure>
+<h3 id="fifo调度策略">FIFO调度策略</h3>
+<p>如果是采用FIFO调度策略，则直接简单地将TaskSetManager按照先来先到的方式入队，出队时直接拿出最先进队的TaskSetManager，其树结构如下图所示，TaskSetManager保存在一个FIFO队列中。</p>
+<figure data-type="image" tabindex="5"><img src="https://liuwenlu12.github.io//post-images/1582821681915.png" alt=""></figure>
+<h3 id="fair调度策略08-开始支持">FAIR调度策略(0.8 开始支持)</h3>
+<figure data-type="image" tabindex="6"><img src="https://liuwenlu12.github.io//post-images/1582821708143.png" alt=""></figure>
+<p>FAIR模式中有一个rootPool和多个子Pool，各个子Pool中存储着所有待分配的TaskSetMagager。<br>
+在FAIR模式中，需要先对子Pool进行排序，再对子Pool里面的TaskSetMagager进行排序，因为Pool和TaskSetMagager都继承了Schedulable特质，因此使用相同的排序算法。<br>
+排序过程的比较是基于Fair-share来比较的，每个要排序的对象包含三个属性: runningTasks值（正在运行的Task数）、minShare值、weight值，比较时会综合考量runningTasks值，minShare值以及weight值。<br>
+注意，minShare、weight的值均在公平调度配置文件fairscheduler.xml中被指定，调度池在构建阶段会读取此文件的相关配置。</p>
+<ol>
+<li>如果 A 对象的runningTasks大于它的minShare，B 对象的runningTasks小于它的minShare，那么B排在A前面；（runningTasks 比 minShare 小的先执行）</li>
+<li>如果A、B对象的 runningTasks 都小于它们的 minShare，那么就比较 runningTasks 与 math.max(minShare1, 1.0) 的比值（minShare使用率），谁小谁排前面；（minShare使用率低的先执行）</li>
+<li>如果A、B对象的runningTasks都大于它们的minShare，那么就比较runningTasks与weight的比值（权重使用率），谁小谁排前面。（权重使用率低的先执行）</li>
+<li>如果上述比较均相等，则比较名字。</li>
+</ol>
+<p>整体上来说就是通过minShare和weight这两个参数控制比较过程，可以做到让minShare使用率和权重使用率少（实际运行task比例较少）的先运行。<br>
+FAIR模式排序完成后，所有的TaskSetManager被放入一个ArrayBuffer里，之后依次被取出并发送给Executor执行。<br>
+从调度队列中拿到TaskSetManager后，由于TaskSetManager封装了一个Stage的所有Task，并负责管理调度这些Task，那么接下来的工作就是TaskSetManager按照一定的规则一个个取出Task给TaskScheduler，TaskScheduler再交给SchedulerBackend去发到Executor上执行。<br>
+如何启用公平调度器:</p>
+<pre><code>val conf = new SparkConf().setMaster(...).setAppName(...)
+conf.set(&quot;spark.scheduler.mode&quot;, &quot;FAIR&quot;)
+val sc = new SparkContext(conf)
+</code></pre>
+<h3 id="本地化调度">本地化调度</h3>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>解析</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PROCESS_LOCAL</td>
+<td>进程本地化，task和数据在同一个Executor中，性能最好。</td>
+</tr>
+<tr>
+<td>NODE_LOCAL</td>
+<td>节点本地化，task和数据在同一个节点中，但是task和数据不在同一个Executor中，数据需要在进程间进行传输。</td>
+</tr>
+<tr>
+<td>RACK_LOCAL</td>
+<td>机架本地化，task和数据在同一个机架的两个节点上，数据需要通过网络在节点之间进行传输。</td>
+</tr>
+<tr>
+<td>NO_PREF</td>
+<td>对于task来说，从哪里获取都一样，没有好坏之分。</td>
+</tr>
+<tr>
+<td>ANY</td>
+<td>task和数据可以在集群的任何地方，而且不在一个机架中，性能最差。</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Spark 部署模式及源码分析]]></title>
         <id>https://liuwenlu12.github.io//post/spark-bu-shu-mo-shi</id>
@@ -123,6 +212,9 @@ CoarseGrainedExecutorBackend
             executor = new Executor(executorId, hostname, env, userClassPath, isLocal = false)
 
 </code></pre>
+<blockquote>
+<p>概述</p>
+</blockquote>
 <h3 id="yarn-client-模式">Yarn Client 模式</h3>
 <figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582800089613.png" alt=""></figure>
 <ol>
@@ -179,12 +271,26 @@ SparkSubmit
             client.submitApplication
 
                 org.apache.spark.deploy.yarn.ExecutorLauncher
-
+                为什么要换个名字：目的是为了区分是运行的client还是cluster模式
 
             启动DrvierEndPoint
                 makeOffers
                     launchTasks(scheduler.resourceOffers(workOffers))
 
+</code></pre>
+<h3 id="client模式-和-cluster模式的区别">Client模式 和 Cluster模式的区别</h3>
+<pre><code>1. spark-submit中反射childMainClass不同
+    cluster:Client    childMainClass = &quot;org.apache.spark.deploy.yarn.Client&quot;
+    client:用户类      childMainClass = args.mainClass
+2. driver位置
+    cluster:位于ApplicationMaster进程中，起一个子线程
+    client:位于SparkSubmit的主线程
+3. 启动AM
+    cluster:ApplicationMaster
+    client:ExecutorLauncher
+
+  在cluster模式下，如果AM一旦启动，SparkSubmit还有用吗？   没有用 可以杀掉 一直在打印日志
+  在client模式下 ，不能杀  杀了Driver也没了
 </code></pre>
 ]]></content>
     </entry>

@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Spark 部署模式及源码分析 | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
-<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1582800438225">
+<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1582822493344">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://liuwenlu12.github.io//styles/main.css">
@@ -20,7 +20,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://liuwenlu12.github.io/">
-  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1582800438225" alt="">
+  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1582822493344" alt="">
   </a>
   <h1 class="site-title">
     刘文路的博客
@@ -80,7 +80,7 @@
                 2020-02-27
               </span>
               <span>
-                5 min read
+                6 min read
               </span>
               
             </div>
@@ -194,6 +194,9 @@ CoarseGrainedExecutorBackend
             executor = new Executor(executorId, hostname, env, userClassPath, isLocal = false)
 
 </code></pre>
+<blockquote>
+<p>概述</p>
+</blockquote>
 <h3 id="yarn-client-模式">Yarn Client 模式</h3>
 <figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582800089613.png" alt=""></figure>
 <ol>
@@ -250,12 +253,26 @@ SparkSubmit
             client.submitApplication
 
                 org.apache.spark.deploy.yarn.ExecutorLauncher
-
+                为什么要换个名字：目的是为了区分是运行的client还是cluster模式
 
             启动DrvierEndPoint
                 makeOffers
                     launchTasks(scheduler.resourceOffers(workOffers))
 
+</code></pre>
+<h3 id="client模式-和-cluster模式的区别">Client模式 和 Cluster模式的区别</h3>
+<pre><code>1. spark-submit中反射childMainClass不同
+    cluster:Client    childMainClass = &quot;org.apache.spark.deploy.yarn.Client&quot;
+    client:用户类      childMainClass = args.mainClass
+2. driver位置
+    cluster:位于ApplicationMaster进程中，起一个子线程
+    client:位于SparkSubmit的主线程
+3. 启动AM
+    cluster:ApplicationMaster
+    client:ExecutorLauncher
+
+  在cluster模式下，如果AM一旦启动，SparkSubmit还有用吗？   没有用 可以杀掉 一直在打印日志
+  在client模式下 ，不能杀  杀了Driver也没了
 </code></pre>
 
               </div>
@@ -267,6 +284,7 @@ SparkSubmit
 <ul>
 <li><a href="#yarn-cluster-%E6%A8%A1%E5%BC%8F">YARN Cluster 模式</a></li>
 <li><a href="#yarn-client-%E6%A8%A1%E5%BC%8F">Yarn Client 模式</a></li>
+<li><a href="#client%E6%A8%A1%E5%BC%8F-%E5%92%8C-cluster%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%8C%BA%E5%88%AB">Client模式 和 Cluster模式的区别</a></li>
 </ul>
 </li>
 </ul>
