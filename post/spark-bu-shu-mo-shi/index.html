@@ -4,10 +4,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Spark 部署模式及源码分析 | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
-<link rel="shortcut icon" href="http://localhost:4000/favicon.ico?v=1583760360890">
+<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1583760360890">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
-<link rel="stylesheet" href="http://localhost:4000/styles/main.css">
+<link rel="stylesheet" href="https://liuwenlu12.github.io//styles/main.css">
 
 <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
@@ -19,8 +19,8 @@
     <div class="main">
       <div class="main-content">
         <div class="site-header">
-  <a href="http://localhost:4000">
-  <img class="avatar" src="http://localhost:4000/images/avatar.png?v=1583760360890" alt="">
+  <a href="https://liuwenlu12.github.io/">
+  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1583760360890" alt="">
   </a>
   <h1 class="site-title">
     刘文路的博客
@@ -94,7 +94,7 @@
 <li>Apache Mesos：一个强大的分布式资源管理框架，它允许多种不同的框架部署在其上，包括 Yarn。</li>
 </ol>
 <h3 id="yarn-cluster-模式">YARN Cluster 模式</h3>
-<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1582794556881.png" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582794556881.png" alt=""></figure>
 <ol>
 <li>执行脚本提交任务，实际是启动一个 SparkSubmit 的 JVM 进程；</li>
 <li>SparkSubmit 类中的 main方法反射调用Client的main方法；</li>
@@ -197,7 +197,7 @@ CoarseGrainedExecutorBackend
 <p><strong>Cluster 模式概述</strong>：脚本在客户端上提交执行之后，执行SparkSubmit的main方法，main方法中会反射一个cilent类，执行client的main方法，封装一个指令(bin/java Application)交给RM,RM会选择一台NodeManager启动AM,AM会运行Driver(运行用户类的main方法),同时AM会向RM申请资源和容器,封装并且发送一个指令(bin/java CoarseGrainedExecutorBackend),让其他NodeManager启动ExecutorBackend进程,ExecutorBackend进程会向Driver进行反向注册(RegisterExecutor),Driver返回一个成功注册的信息,Executor进程会创建一个Executor对象,之后就可以进行任务分配</p>
 <p><strong>SparkSubmit  Application ExecutorBackend三个进程</strong></p>
 <h3 id="yarn-client-模式">Yarn Client 模式</h3>
-<figure data-type="image" tabindex="2"><img src="http://localhost:4000/post-images/1582800089613.png" alt=""></figure>
+<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582800089613.png" alt=""></figure>
 <ol>
 <li>执行脚本提交任务，实际是启动一个SparkSubmit的 JVM 进程；</li>
 <li>SparkSubmit伴生对象中的main方法反射调用用户代码的main方法；</li>
@@ -299,7 +299,7 @@ SparkSubmit
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="http://localhost:4000/post/bi-ji">
+            <a href="https://liuwenlu12.github.io//post/bi-ji">
               <h3 class="post-title">
                 笔记
               </h3>
@@ -311,7 +311,7 @@ SparkSubmit
 
         <div class="site-footer">
   Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | 
-  <a class="rss" href="http://localhost:4000/atom.xml" target="_blank">RSS</a>
+  <a class="rss" href="https://liuwenlu12.github.io//atom.xml" target="_blank">RSS</a>
 </div>
 
 <script>

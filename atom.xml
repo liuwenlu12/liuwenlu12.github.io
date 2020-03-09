@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>http://localhost:4000</id>
+    <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2020-03-09T13:26:16.688Z</updated>
+    <updated>2020-03-09T13:27:54.349Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="http://localhost:4000"/>
-    <link rel="self" href="http://localhost:4000/atom.xml"/>
+    <link rel="alternate" href="https://liuwenlu12.github.io/"/>
+    <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
     <subtitle>与其仓皇追赶日落，不如静待漫天星辰</subtitle>
-    <logo>http://localhost:4000/images/avatar.png</logo>
-    <icon>http://localhost:4000/favicon.ico</icon>
+    <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
+    <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2020, 刘文路的博客</rights>
     <entry>
         <title type="html"><![CDATA[电影：幸福终点站]]></title>
-        <id>http://localhost:4000/post/dian-ying-xing-fu-zhong-dian-zhan</id>
-        <link href="http://localhost:4000/post/dian-ying-xing-fu-zhong-dian-zhan">
+        <id>https://liuwenlu12.github.io//post/dian-ying-xing-fu-zhong-dian-zhan</id>
+        <link href="https://liuwenlu12.github.io//post/dian-ying-xing-fu-zhong-dian-zhan">
         </link>
         <updated>2020-03-09T13:19:39.000Z</updated>
         <content type="html"><![CDATA[<p>自己的信念，</p>
@@ -24,30 +24,30 @@
 <p>慢慢地去努力，</p>
 <p>至于结果，</p>
 <p>就让给时间吧。</p>
-<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1583760337714.jpg" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1583760337714.jpg" alt=""></figure>
 ]]></content>
     </entry>
     <entry>
         <title type="html"><![CDATA[Spark Shuffle 解析]]></title>
-        <id>http://localhost:4000/post/spark-shuffle-jie-xi</id>
-        <link href="http://localhost:4000/post/spark-shuffle-jie-xi">
+        <id>https://liuwenlu12.github.io//post/spark-shuffle-jie-xi</id>
+        <link href="https://liuwenlu12.github.io//post/spark-shuffle-jie-xi">
         </link>
         <updated>2020-02-27T17:07:56.000Z</updated>
         <content type="html"><![CDATA[<h4 id="未优化的hashshuffle">未优化的HashShuffle</h4>
-<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1582823385827.png" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582823385827.png" alt=""></figure>
 <p>缺点:</p>
 <ol>
 <li>map 任务的中间结果首先存入内存(缓存), 然后才写入磁盘. 这对于内存的开销很大, 当一个节点上 map 任务的输出结果集很大时, 很容易导致内存紧张, 发生 OOM</li>
 <li>生成很多的小文件. 假设有 M 个 MapTask, 有 N 个 ReduceTask, 则会创建 M * n 个小文件, 磁盘 I/O 将成为性能瓶颈.</li>
 </ol>
 <h4 id="优化的hashshuffle">优化的HashShuffle</h4>
-<figure data-type="image" tabindex="2"><img src="http://localhost:4000/post-images/1582823456943.png" alt=""></figure>
+<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582823456943.png" alt=""></figure>
 <p>优化的 HashShuffle 过程就是启用合并机制，合并机制就是复用buffer，开启合并机制的配置是spark.shuffle.consolidateFiles。该参数默认值为false，将其设置为true即可开启优化机制。通常来说，如果我们使用HashShuffleManager，那么都建议开启这个选项。</p>
 <h4 id="sortshuffle-解析">SortShuffle 解析</h4>
 <p>普通 SortShuffle<br>
-<img src="http://localhost:4000/post-images/1582823873456.png" alt=""></p>
+<img src="https://liuwenlu12.github.io//post-images/1582823873456.png" alt=""></p>
 <p>bypassSortShuffle<br>
-<img src="http://localhost:4000/post-images/1582823904849.png" alt=""></p>
+<img src="https://liuwenlu12.github.io//post-images/1582823904849.png" alt=""></p>
 <p>bypass运行机制的触发条件如下(必须同时满足)：</p>
 <ol>
 <li>shuffle map task数量小于spark.shuffle.sort.bypassMergeThreshold参数的值，默认为200。</li>
@@ -57,8 +57,8 @@
     </entry>
     <entry>
         <title type="html"><![CDATA[Spark 任务调度机制]]></title>
-        <id>http://localhost:4000/post/spark-ren-wu-diao-du-ji-zhi</id>
-        <link href="http://localhost:4000/post/spark-ren-wu-diao-du-ji-zhi">
+        <id>https://liuwenlu12.github.io//post/spark-ren-wu-diao-du-ji-zhi</id>
+        <link href="https://liuwenlu12.github.io//post/spark-ren-wu-diao-du-ji-zhi">
         </link>
         <updated>2020-02-27T14:44:47.000Z</updated>
         <content type="html"><![CDATA[<p>当 Driver 起来后，Driver 则会根据用户程序逻辑准备任务，并根据Executor资源情况逐步分发任务。<br>
@@ -69,16 +69,16 @@
 <li>Task 是 Stage 的子集，以并行度(分区数)来衡量，这个 Stage 分区数是多少，则这个Stage 就有多少个 Task。<br>
 Spark 的任务调度总体来说分两路进行，一路是 Stage 级的调度，一路是 Task 级的调度，总体调度流程如下图所示：</li>
 </ol>
-<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1582816815462.png" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582816815462.png" alt=""></figure>
 <p>Spark RDD 通过其 Transactions 操作，形成了RDD血缘关系图，即DAG，最后通过Action的调用，触发Job并调度执行。<br>
 DAGScheduler负责Stage级的调度，主要是将job切分成若干Stages，并将每个Stage打包成TaskSet交给TaskScheduler调度。<br>
 TaskScheduler负责Task级的调度，将DAGScheduler传过来的TaskSet按照指定的调度策略分发到Executor上执行，调度过程中SchedulerBackend负责提供可用资源，其中SchedulerBackend有多种实现，分别对接不同的资源管理系统。</p>
-<figure data-type="image" tabindex="2"><img src="http://localhost:4000/post-images/1582821511401.png" alt=""></figure>
+<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582821511401.png" alt=""></figure>
 <p>Driver初始化SparkContext过程中，会分别初始化DAGScheduler、TaskScheduler、SchedulerBackend以及HeartbeatReceiver，并启动 SchedulerBackend以及HeartbeatReceiver。<br>
 SchedulerBackend通过ApplicationMaster申请资源，并不断从TaskScheduler中拿到合适的Task分发到Executor执行。<br>
 HeartbeatReceiver负责接收Executor的心跳信息，监控Executor的存活状况，并通知到TaskScheduler。</p>
 <h3 id="spark-stage-级别调度">Spark Stage 级别调度</h3>
-<figure data-type="image" tabindex="3"><img src="http://localhost:4000/post-images/1582821547270.png" alt=""></figure>
+<figure data-type="image" tabindex="3"><img src="https://liuwenlu12.github.io//post-images/1582821547270.png" alt=""></figure>
 <ol>
 <li>Job 由最终的RDD和Action方法封装而成；</li>
 <li>SparkContext将Job交给DAGScheduler提交，它会根据RDD的血缘关系构成的DAG进行切分，将一个Job划分为若干Stages，具体划分策略是，由最终的RDD不断通过依赖回溯判断父依赖是否是宽依赖，即以Shuffle为界，划分Stage，窄依赖的RDD之间被划分到同一个Stage中，可以进行pipeline式的计算。</li>
@@ -86,13 +86,13 @@ HeartbeatReceiver负责接收Executor的心跳信息，监控Executor的存活�
 </ol>
 <h3 id="spark-task-级别调度">Spark Task 级别调度</h3>
 <p>TaskSetManager结构如下图所示。<br>
-<img src="http://localhost:4000/post-images/1582821601280.png" alt=""></p>
-<figure data-type="image" tabindex="4"><img src="http://localhost:4000/post-images/1582821628549.png" alt=""></figure>
+<img src="https://liuwenlu12.github.io//post-images/1582821601280.png" alt=""></p>
+<figure data-type="image" tabindex="4"><img src="https://liuwenlu12.github.io//post-images/1582821628549.png" alt=""></figure>
 <h3 id="fifo调度策略">FIFO调度策略</h3>
 <p>如果是采用FIFO调度策略，则直接简单地将TaskSetManager按照先来先到的方式入队，出队时直接拿出最先进队的TaskSetManager，其树结构如下图所示，TaskSetManager保存在一个FIFO队列中。</p>
-<figure data-type="image" tabindex="5"><img src="http://localhost:4000/post-images/1582821681915.png" alt=""></figure>
+<figure data-type="image" tabindex="5"><img src="https://liuwenlu12.github.io//post-images/1582821681915.png" alt=""></figure>
 <h3 id="fair调度策略08-开始支持">FAIR调度策略(0.8 开始支持)</h3>
-<figure data-type="image" tabindex="6"><img src="http://localhost:4000/post-images/1582821708143.png" alt=""></figure>
+<figure data-type="image" tabindex="6"><img src="https://liuwenlu12.github.io//post-images/1582821708143.png" alt=""></figure>
 <p>FAIR模式中有一个rootPool和多个子Pool，各个子Pool中存储着所有待分配的TaskSetMagager。<br>
 在FAIR模式中，需要先对子Pool进行排序，再对子Pool里面的TaskSetMagager进行排序，因为Pool和TaskSetMagager都继承了Schedulable特质，因此使用相同的排序算法。<br>
 排序过程的比较是基于Fair-share来比较的，每个要排序的对象包含三个属性: runningTasks值（正在运行的Task数）、minShare值、weight值，比较时会综合考量runningTasks值，minShare值以及weight值。<br>
@@ -149,8 +149,8 @@ val sc = new SparkContext(conf)
     </entry>
     <entry>
         <title type="html"><![CDATA[Spark 部署模式及源码分析]]></title>
-        <id>http://localhost:4000/post/spark-bu-shu-mo-shi</id>
-        <link href="http://localhost:4000/post/spark-bu-shu-mo-shi">
+        <id>https://liuwenlu12.github.io//post/spark-bu-shu-mo-shi</id>
+        <link href="https://liuwenlu12.github.io//post/spark-bu-shu-mo-shi">
         </link>
         <updated>2020-02-27T08:13:12.000Z</updated>
         <content type="html"><![CDATA[<p>Spark支持3种集群管理器（Cluster Manager），分别为：</p>
@@ -160,7 +160,7 @@ val sc = new SparkContext(conf)
 <li>Apache Mesos：一个强大的分布式资源管理框架，它允许多种不同的框架部署在其上，包括 Yarn。</li>
 </ol>
 <h3 id="yarn-cluster-模式">YARN Cluster 模式</h3>
-<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1582794556881.png" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582794556881.png" alt=""></figure>
 <ol>
 <li>执行脚本提交任务，实际是启动一个 SparkSubmit 的 JVM 进程；</li>
 <li>SparkSubmit 类中的 main方法反射调用Client的main方法；</li>
@@ -263,7 +263,7 @@ CoarseGrainedExecutorBackend
 <p><strong>Cluster 模式概述</strong>：脚本在客户端上提交执行之后，执行SparkSubmit的main方法，main方法中会反射一个cilent类，执行client的main方法，封装一个指令(bin/java Application)交给RM,RM会选择一台NodeManager启动AM,AM会运行Driver(运行用户类的main方法),同时AM会向RM申请资源和容器,封装并且发送一个指令(bin/java CoarseGrainedExecutorBackend),让其他NodeManager启动ExecutorBackend进程,ExecutorBackend进程会向Driver进行反向注册(RegisterExecutor),Driver返回一个成功注册的信息,Executor进程会创建一个Executor对象,之后就可以进行任务分配</p>
 <p><strong>SparkSubmit  Application ExecutorBackend三个进程</strong></p>
 <h3 id="yarn-client-模式">Yarn Client 模式</h3>
-<figure data-type="image" tabindex="2"><img src="http://localhost:4000/post-images/1582800089613.png" alt=""></figure>
+<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582800089613.png" alt=""></figure>
 <ol>
 <li>执行脚本提交任务，实际是启动一个SparkSubmit的 JVM 进程；</li>
 <li>SparkSubmit伴生对象中的main方法反射调用用户代码的main方法；</li>
@@ -344,8 +344,8 @@ SparkSubmit
     </entry>
     <entry>
         <title type="html"><![CDATA[笔记]]></title>
-        <id>http://localhost:4000/post/bi-ji</id>
-        <link href="http://localhost:4000/post/bi-ji">
+        <id>https://liuwenlu12.github.io//post/bi-ji</id>
+        <link href="https://liuwenlu12.github.io//post/bi-ji">
         </link>
         <updated>2020-02-26T16:08:30.000Z</updated>
         <content type="html"><![CDATA[<p>···<br>
@@ -370,12 +370,12 @@ a(int)  b(String)</p>
     </entry>
     <entry>
         <title type="html"><![CDATA[ Spark集群启动流程分析]]></title>
-        <id>http://localhost:4000/post/spark-ji-qun-qi-dong-liu-cheng-fen-xi</id>
-        <link href="http://localhost:4000/post/spark-ji-qun-qi-dong-liu-cheng-fen-xi">
+        <id>https://liuwenlu12.github.io//post/spark-ji-qun-qi-dong-liu-cheng-fen-xi</id>
+        <link href="https://liuwenlu12.github.io//post/spark-ji-qun-qi-dong-liu-cheng-fen-xi">
         </link>
         <updated>2020-02-26T15:53:46.000Z</updated>
         <content type="html"><![CDATA[<h4 id="流程">流程</h4>
-<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1582732625980.png" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582732625980.png" alt=""></figure>
 <h4 id="master服务端口-7077">Master服务端口 7077</h4>
 <pre><code>   1 val args = new MasterArguments(argStrings, conf)  封装参数
 
@@ -482,8 +482,8 @@ master如果没起来   用定时器尝试继续注册自己  16次（6+10）
     </entry>
     <entry>
         <title type="html"><![CDATA[Spark通讯架构]]></title>
-        <id>http://localhost:4000/post/spark-tong-xun-jia-gou</id>
-        <link href="http://localhost:4000/post/spark-tong-xun-jia-gou">
+        <id>https://liuwenlu12.github.io//post/spark-tong-xun-jia-gou</id>
+        <link href="https://liuwenlu12.github.io//post/spark-tong-xun-jia-gou">
         </link>
         <updated>2020-02-26T15:18:36.000Z</updated>
         <content type="html"><![CDATA[<h4 id="spark-内置-rpc-框架">Spark 内置 RPC 框架</h4>
@@ -495,21 +495,21 @@ master如果没起来   用定时器尝试继续注册自己  16次（6+10）
 <li>从Spark2.0.0, Akka 被移除.</li>
 </ol>
 <h4 id="actor-模型">Actor 模型</h4>
-<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1582730544913.png" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582730544913.png" alt=""></figure>
 <h4 id="netty-通信架构">Netty 通信架构</h4>
 <p>Netty 借鉴了 Akka 的 Actor 模型<br>
 Spark通讯框架中各个组件（Client/Master/Worker）可以认为是一个个独立的实体，各个实体之间通过消息来进行通信。</p>
-<figure data-type="image" tabindex="2"><img src="http://localhost:4000/post-images/1582730593467.png" alt=""></figure>
+<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582730593467.png" alt=""></figure>
 <p>详细<br>
-<img src="http://localhost:4000/post-images/1582730972828.png" alt=""></p>
+<img src="https://liuwenlu12.github.io//post-images/1582730972828.png" alt=""></p>
 <p>高层俯视图<br>
-<img src="http://localhost:4000/post-images/1582731230217.png" alt=""></p>
+<img src="https://liuwenlu12.github.io//post-images/1582731230217.png" alt=""></p>
 ]]></content>
     </entry>
     <entry>
         <title type="html"><![CDATA[Spark内核]]></title>
-        <id>http://localhost:4000/post/spark-nei-he</id>
-        <link href="http://localhost:4000/post/spark-nei-he">
+        <id>https://liuwenlu12.github.io//post/spark-nei-he</id>
+        <link href="https://liuwenlu12.github.io//post/spark-nei-he">
         </link>
         <updated>2020-02-26T14:43:04.000Z</updated>
         <content type="html"><![CDATA[<h3 id="spark核心组件">Spark核心组件</h3>
@@ -552,7 +552,7 @@ Executor 有两个核心功能：</li>
 <h5 id="8080端口-master">8080端口-&gt;Master</h5>
 <h5 id="8081端口-worker">8081端口-&gt;Worker</h5>
 <h3 id="spark-通用运行流程概述">Spark 通用运行流程概述</h3>
-<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1582730179336.png" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582730179336.png" alt=""></figure>
 <ol>
 <li>任务提交后，都会先启动 Driver 程序；</li>
 <li>随后 Driver 向集群管理器注册应用程序；</li>
@@ -564,8 +564,8 @@ Executor 有两个核心功能：</li>
     </entry>
     <entry>
         <title type="html"><![CDATA[SparkStreaming处理完数据写入redis]]></title>
-        <id>http://localhost:4000/post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis</id>
-        <link href="http://localhost:4000/post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis">
+        <id>https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis</id>
+        <link href="https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis">
         </link>
         <updated>2020-02-26T14:27:36.000Z</updated>
         <content type="html"><![CDATA[<h4 id="redisutil">RedisUtil</h4>
@@ -620,8 +620,8 @@ object RedisUtil {
     </entry>
     <entry>
         <title type="html"><![CDATA[迭代器]]></title>
-        <id>http://localhost:4000/post/die-dai-qi</id>
-        <link href="http://localhost:4000/post/die-dai-qi">
+        <id>https://liuwenlu12.github.io//post/die-dai-qi</id>
+        <link href="https://liuwenlu12.github.io//post/die-dai-qi">
         </link>
         <updated>2020-02-26T14:13:40.000Z</updated>
         <content type="html"><![CDATA[<h4 id="他们是一种惰性数据结构并且他们数据只能使用一次">他们是一种惰性数据结构，并且他们数据只能使用一次</h4>
