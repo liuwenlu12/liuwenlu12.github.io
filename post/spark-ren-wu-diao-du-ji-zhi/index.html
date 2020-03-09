@@ -4,10 +4,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Spark 任务调度机制 | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
-<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1582849555233">
+<link rel="shortcut icon" href="http://localhost:4000/favicon.ico?v=1583760360890">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
-<link rel="stylesheet" href="https://liuwenlu12.github.io//styles/main.css">
+<link rel="stylesheet" href="http://localhost:4000/styles/main.css">
 
 <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
@@ -19,8 +19,8 @@
     <div class="main">
       <div class="main-content">
         <div class="site-header">
-  <a href="https://liuwenlu12.github.io/">
-  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1582849555233" alt="">
+  <a href="http://localhost:4000">
+  <img class="avatar" src="http://localhost:4000/images/avatar.png?v=1583760360890" alt="">
   </a>
   <h1 class="site-title">
     刘文路的博客
@@ -95,16 +95,16 @@
 <li>Task 是 Stage 的子集，以并行度(分区数)来衡量，这个 Stage 分区数是多少，则这个Stage 就有多少个 Task。<br>
 Spark 的任务调度总体来说分两路进行，一路是 Stage 级的调度，一路是 Task 级的调度，总体调度流程如下图所示：</li>
 </ol>
-<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582816815462.png" alt=""></figure>
+<figure data-type="image" tabindex="1"><img src="http://localhost:4000/post-images/1582816815462.png" alt=""></figure>
 <p>Spark RDD 通过其 Transactions 操作，形成了RDD血缘关系图，即DAG，最后通过Action的调用，触发Job并调度执行。<br>
 DAGScheduler负责Stage级的调度，主要是将job切分成若干Stages，并将每个Stage打包成TaskSet交给TaskScheduler调度。<br>
 TaskScheduler负责Task级的调度，将DAGScheduler传过来的TaskSet按照指定的调度策略分发到Executor上执行，调度过程中SchedulerBackend负责提供可用资源，其中SchedulerBackend有多种实现，分别对接不同的资源管理系统。</p>
-<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582821511401.png" alt=""></figure>
+<figure data-type="image" tabindex="2"><img src="http://localhost:4000/post-images/1582821511401.png" alt=""></figure>
 <p>Driver初始化SparkContext过程中，会分别初始化DAGScheduler、TaskScheduler、SchedulerBackend以及HeartbeatReceiver，并启动 SchedulerBackend以及HeartbeatReceiver。<br>
 SchedulerBackend通过ApplicationMaster申请资源，并不断从TaskScheduler中拿到合适的Task分发到Executor执行。<br>
 HeartbeatReceiver负责接收Executor的心跳信息，监控Executor的存活状况，并通知到TaskScheduler。</p>
 <h3 id="spark-stage-级别调度">Spark Stage 级别调度</h3>
-<figure data-type="image" tabindex="3"><img src="https://liuwenlu12.github.io//post-images/1582821547270.png" alt=""></figure>
+<figure data-type="image" tabindex="3"><img src="http://localhost:4000/post-images/1582821547270.png" alt=""></figure>
 <ol>
 <li>Job 由最终的RDD和Action方法封装而成；</li>
 <li>SparkContext将Job交给DAGScheduler提交，它会根据RDD的血缘关系构成的DAG进行切分，将一个Job划分为若干Stages，具体划分策略是，由最终的RDD不断通过依赖回溯判断父依赖是否是宽依赖，即以Shuffle为界，划分Stage，窄依赖的RDD之间被划分到同一个Stage中，可以进行pipeline式的计算。</li>
@@ -112,13 +112,13 @@ HeartbeatReceiver负责接收Executor的心跳信息，监控Executor的存活�
 </ol>
 <h3 id="spark-task-级别调度">Spark Task 级别调度</h3>
 <p>TaskSetManager结构如下图所示。<br>
-<img src="https://liuwenlu12.github.io//post-images/1582821601280.png" alt=""></p>
-<figure data-type="image" tabindex="4"><img src="https://liuwenlu12.github.io//post-images/1582821628549.png" alt=""></figure>
+<img src="http://localhost:4000/post-images/1582821601280.png" alt=""></p>
+<figure data-type="image" tabindex="4"><img src="http://localhost:4000/post-images/1582821628549.png" alt=""></figure>
 <h3 id="fifo调度策略">FIFO调度策略</h3>
 <p>如果是采用FIFO调度策略，则直接简单地将TaskSetManager按照先来先到的方式入队，出队时直接拿出最先进队的TaskSetManager，其树结构如下图所示，TaskSetManager保存在一个FIFO队列中。</p>
-<figure data-type="image" tabindex="5"><img src="https://liuwenlu12.github.io//post-images/1582821681915.png" alt=""></figure>
+<figure data-type="image" tabindex="5"><img src="http://localhost:4000/post-images/1582821681915.png" alt=""></figure>
 <h3 id="fair调度策略08-开始支持">FAIR调度策略(0.8 开始支持)</h3>
-<figure data-type="image" tabindex="6"><img src="https://liuwenlu12.github.io//post-images/1582821708143.png" alt=""></figure>
+<figure data-type="image" tabindex="6"><img src="http://localhost:4000/post-images/1582821708143.png" alt=""></figure>
 <p>FAIR模式中有一个rootPool和多个子Pool，各个子Pool中存储着所有待分配的TaskSetMagager。<br>
 在FAIR模式中，需要先对子Pool进行排序，再对子Pool里面的TaskSetMagager进行排序，因为Pool和TaskSetMagager都继承了Schedulable特质，因此使用相同的排序算法。<br>
 排序过程的比较是基于Fair-share来比较的，每个要排序的对象包含三个属性: runningTasks值（正在运行的Task数）、minShare值、weight值，比较时会综合考量runningTasks值，minShare值以及weight值。<br>
@@ -199,7 +199,7 @@ val sc = new SparkContext(conf)
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://liuwenlu12.github.io//post/spark-bu-shu-mo-shi">
+            <a href="http://localhost:4000/post/spark-bu-shu-mo-shi">
               <h3 class="post-title">
                 Spark 部署模式及源码分析
               </h3>
@@ -211,7 +211,7 @@ val sc = new SparkContext(conf)
 
         <div class="site-footer">
   Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | 
-  <a class="rss" href="https://liuwenlu12.github.io//atom.xml" target="_blank">RSS</a>
+  <a class="rss" href="http://localhost:4000/atom.xml" target="_blank">RSS</a>
 </div>
 
 <script>
