@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>笔记 | 刘文路的博客</title>
+<title>Flink任务链 | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
 <link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1584121061168">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -73,11 +73,11 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              笔记
+              Flink任务链
             </h2>
             <div class="post-info">
               <span>
-                2020-02-27
+                2020-03-14
               </span>
               <span>
                 1 min read
@@ -87,28 +87,26 @@
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>···<br>
-saveAsTable:<br>
-1. 如果表不存在, 则会自动创建<br>
-2. 如果表存在(append),  则后面存储的数据, 元数据的顺序要与表中的元数据的顺序一致<br>
-表内数据:<br>
-a(int)     b(string)<br>
-新的数据:<br>
-aa(int)    bb(string)<br>
-3. 列名可以不一致</p>
-<p>insertInto<br>
-1. 要求表必须存在<br>
-2. 要求列名必须一致.<br>
-表内数据:<br>
-a(int)  b(String)</p>
-<pre><code>    新的数据:
-        b(string)  a(int)
-</code></pre>
-<p>···</p>
+                <h3 id="解析">解析</h3>
+<p>合并的前提<br>
+one-to-one 并且并行度相同</p>
+<p>rebalance  两个任务并行度不同采用轮询  比如前一个任务并行度2 后一个3  轮询发送数据</p>
+<p>类shuffle</p>
 
               </div>
               <div class="toc-container">
-                
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E8%A7%A3%E6%9E%90">解析</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
               </div>
             </div>
           </article>
@@ -117,9 +115,9 @@ a(int)  b(String)</p>
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://liuwenlu12.github.io//post/spark-ji-qun-qi-dong-liu-cheng-fen-xi">
+            <a href="https://liuwenlu12.github.io//post/dian-ying-xing-fu-zhong-dian-zhan">
               <h3 class="post-title">
-                 Spark集群启动流程分析
+                电影：幸福终点站
               </h3>
             </a>
           </div>
