@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Spark Shuffle 解析 | 刘文路的博客</title>
+<title>Hadoop | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
 <link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1586568269553">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -73,40 +73,52 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              Spark Shuffle 解析
+              Hadoop
             </h2>
             <div class="post-info">
               <span>
-                2020-02-28
+                2020-04-11
               </span>
               <span>
-                1 min read
+                2 min read
               </span>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <h4 id="未优化的hashshuffle">未优化的HashShuffle</h4>
-<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582823385827.png" alt=""></figure>
-<p>缺点:</p>
-<ol>
-<li>map 任务的中间结果首先存入内存(缓存), 然后才写入磁盘. 这对于内存的开销很大, 当一个节点上 map 任务的输出结果集很大时, 很容易导致内存紧张, 发生 OOM</li>
-<li>生成很多的小文件. 假设有 M 个 MapTask, 有 N 个 ReduceTask, 则会创建 M * n 个小文件, 磁盘 I/O 将成为性能瓶颈.</li>
-</ol>
-<h4 id="优化的hashshuffle">优化的HashShuffle</h4>
-<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582823456943.png" alt=""></figure>
-<p>优化的 HashShuffle 过程就是启用合并机制，合并机制就是复用buffer，开启合并机制的配置是spark.shuffle.consolidateFiles。该参数默认值为false，将其设置为true即可开启优化机制。通常来说，如果我们使用HashShuffleManager，那么都建议开启这个选项。</p>
-<h4 id="sortshuffle-解析">SortShuffle 解析</h4>
-<p>普通 SortShuffle<br>
-<img src="https://liuwenlu12.github.io//post-images/1582823873456.png" alt=""></p>
-<p>bypassSortShuffle<br>
-<img src="https://liuwenlu12.github.io//post-images/1582823904849.png" alt=""></p>
-<p>bypass运行机制的触发条件如下(必须同时满足)：</p>
-<ol>
-<li>shuffle map task数量小于spark.shuffle.sort.bypassMergeThreshold参数的值，默认为200。</li>
-<li>不是聚合类的shuffle算子(没有预聚合)（比如groupByKey）。</li>
-</ol>
+                <h4 id="入门">入门</h4>
+<p>常用端口号<br>
+50070 19888 8088 9000 50090<br>
+HDFS HOSTORY MR 客户端访问<br>
+安装过程中8个配置文件<br>
+common HDFS YARN MR<br>
+core-site.xml hdfs-site.xml yarn-site.xml mapred-site.xml<br>
+3env<br>
+hadoop-env.sh hdfs-env.sh mapred-env.sh<br>
+slaves (不能有空格 不能有空行)</p>
+<h4 id="hdfs">HDFS</h4>
+<p>HDFS读写流程</p>
+<p>HDFS小文件<br>
+什么情况会产生小文件<br>
+日志文件=&gt;flume=&gt;kafka=&gt;flume(时间1-2小时、大小128m、event个数)=&gt;hdfs<br>
+小文件影响什么<br>
+增加namenode存储空间<br>
+增加maotask数量、耗费过多内存资源<br>
+1kb 1kb 1kb 3个maptask 耗费3g  1g<br>
+增加JVM虚拟机开关次数<br>
+怎么解决<br>
+har/自定义inputformat<br>
+7<em>150字节/1</em>150字节  seq</p>
+<pre><code>    128gnamenode存储最多多少文件快 1个文件块150字节
+    128g/150字节=128*1024m*1024kb*1024bit/150
+
+    combineInputFormat
+    减少切片的个数、进而减少maptask个数
+
+    开启JVM重用
+    如果没有小文件 不要开启JVM重用
+</code></pre>
 
               </div>
               <div class="toc-container">
@@ -117,9 +129,8 @@
 <ul>
 <li>
 <ul>
-<li><a href="#%E6%9C%AA%E4%BC%98%E5%8C%96%E7%9A%84hashshuffle">未优化的HashShuffle</a></li>
-<li><a href="#%E4%BC%98%E5%8C%96%E7%9A%84hashshuffle">优化的HashShuffle</a></li>
-<li><a href="#sortshuffle-%E8%A7%A3%E6%9E%90">SortShuffle 解析</a></li>
+<li><a href="#%E5%85%A5%E9%97%A8">入门</a></li>
+<li><a href="#hdfs">HDFS</a></li>
 </ul>
 </li>
 </ul>
@@ -136,9 +147,9 @@
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://liuwenlu12.github.io//post/spark-ren-wu-diao-du-ji-zhi">
+            <a href="https://liuwenlu12.github.io//post/fu-xi">
               <h3 class="post-title">
-                Spark 任务调度机制
+                linux、shell
               </h3>
             </a>
           </div>

@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2020-03-25T14:15:43.591Z</updated>
+    <updated>2020-04-11T01:24:57.387Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
@@ -10,6 +10,90 @@
     <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2020, 刘文路的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Hadoop]]></title>
+        <id>https://liuwenlu12.github.io//post/hadoop</id>
+        <link href="https://liuwenlu12.github.io//post/hadoop">
+        </link>
+        <updated>2020-04-11T00:58:07.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="入门">入门</h4>
+<p>常用端口号<br>
+50070 19888 8088 9000 50090<br>
+HDFS HOSTORY MR 客户端访问<br>
+安装过程中8个配置文件<br>
+common HDFS YARN MR<br>
+core-site.xml hdfs-site.xml yarn-site.xml mapred-site.xml<br>
+3env<br>
+hadoop-env.sh hdfs-env.sh mapred-env.sh<br>
+slaves (不能有空格 不能有空行)</p>
+<h4 id="hdfs">HDFS</h4>
+<p>HDFS读写流程</p>
+<p>HDFS小文件<br>
+什么情况会产生小文件<br>
+日志文件=&gt;flume=&gt;kafka=&gt;flume(时间1-2小时、大小128m、event个数)=&gt;hdfs<br>
+小文件影响什么<br>
+增加namenode存储空间<br>
+增加maotask数量、耗费过多内存资源<br>
+1kb 1kb 1kb 3个maptask 耗费3g  1g<br>
+增加JVM虚拟机开关次数<br>
+怎么解决<br>
+har/自定义inputformat<br>
+7<em>150字节/1</em>150字节  seq</p>
+<pre><code>    128gnamenode存储最多多少文件快 1个文件块150字节
+    128g/150字节=128*1024m*1024kb*1024bit/150
+
+    combineInputFormat
+    减少切片的个数、进而减少maptask个数
+
+    开启JVM重用
+    如果没有小文件 不要开启JVM重用
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[linux、shell]]></title>
+        <id>https://liuwenlu12.github.io//post/fu-xi</id>
+        <link href="https://liuwenlu12.github.io//post/fu-xi">
+        </link>
+        <updated>2020-04-11T00:40:57.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="linux">linux</h4>
+<p>常用高级命令<br>
+netstat、top、iotop、crotab、df -h、tar<br>
+查看磁盘、查看进程、定时任务、查看端口<br>
+df -h top ps crotab netstat</p>
+<h4 id="shell">shell</h4>
+<p>工具<br>
+cut、awk、sed、sort<br>
+哪些shell脚本</p>
+<ol>
+<li>框架启动停止脚本<pre><code>case $1 in
+&quot;start&quot;)
+     for i in hadoop102 hadoop103 hadoop104
+     do
+         ssh $i &quot;绝对路径&quot;
+         done
+</code></pre>
+</li>
+<li>数仓和mysql导入导出脚本 sqoop</li>
+<li>数仓内部层级之间导入导出<pre><code>#!/bin/bash
+Apache经常用 CDH不会用
+App =gamll
+hive=/opt/moudule/hive/bin/hive
+时间
+if[-n &quot;$1&quot;]
+    do_date=$1
+else
+    do_date=`date -d &quot;-1 day&quot; +%F`
+if
+sql=&quot;遇到表在前面加上${APP}
+    遇到时间替换为$do_date
+&quot;
+$hive -e &quot;$sql&quot;
+</code></pre>
+</li>
+</ol>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Flink任务链]]></title>
         <id>https://liuwenlu12.github.io//post/flink-ren-wu-lian</id>
@@ -517,118 +601,6 @@ Spark通讯框架中各个组件（Client/Master/Worker）可以认为是一个�
 <img src="https://liuwenlu12.github.io//post-images/1582730972828.png" alt=""></p>
 <p>高层俯视图<br>
 <img src="https://liuwenlu12.github.io//post-images/1582731230217.png" alt=""></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Spark内核]]></title>
-        <id>https://liuwenlu12.github.io//post/spark-nei-he</id>
-        <link href="https://liuwenlu12.github.io//post/spark-nei-he">
-        </link>
-        <updated>2020-02-26T14:43:04.000Z</updated>
-        <content type="html"><![CDATA[<h3 id="spark核心组件">Spark核心组件</h3>
-<ol>
-<li>Cluster Manager (分配的资源属于一级分配, 它将各个 Worker 上的内存, CPU 等资源分配给 Application, 但并不负责对 Executor 的资源的分配)
-<ol>
-<li>Master  (Standalone)</li>
-<li>ResourceManager (Yarn)</li>
-<li>MesosMaster (Mesos)</li>
-<li>Kubernetes  2.3.0新增 (docker配合)</li>
-</ol>
-</li>
-<li>Worker (工作节点 在 Yarn 部署模式下实际由 NodeManager 替代)
-<ol>
-<li>将自己的内存, CPU 等资源通过注册机制告知 Cluster Manager</li>
-<li>创建 Executor进程</li>
-<li>将资源和任务进一步分配给 Executor</li>
-<li>同步资源信息, Executor 状态信息给 ClusterManager 等.</li>
-</ol>
-</li>
-<li>Driver (Spark 驱动器节点，用于执行 Spark 任务中的 main 方法，负责实际代码的执行工作)
-<ol>
-<li>将用户程序转化为作业（Job）；</li>
-<li>在 Executor 之间调度任务（Task）；</li>
-<li>跟踪 Executor 的执行情况；</li>
-<li>通过 UI 展示查询运行情况；</li>
-</ol>
-</li>
-<li>Executor (Spark Executor 节点是负责在 Spark 作业中运行具体任务，任务彼此之间相互独立)        Spark 应用启动时，Executor 节点被同时启动，并且始终伴随着整个 Spark 应用的生命周期而存在。<br>
-如果有 Executor 节点发生了故障或崩溃，Spark 应用也可以继续执行，会将出错节点上的任务调度到其他 Executor 节点上继续运行。<br>
-Executor 有两个核心功能：</li>
-<li>负责运行组成 Spark 应用的任务，并将结果返回给驱动器（Driver）；</li>
-<li>它们通过自身的块管理器（Block Manager）为用户程序中要求缓存的 RDD 提供内存式存储。RDD 的数据是直接缓存在 Executor 进程内的，因此任务可以在运行时充分利用缓存数据加速运算。</li>
-<li>Application<br>
-• Application 通过 Spark API 将进行 RDD 的转换和 DAG 的构建, 并通过 Driver 将 Application 注册到 Cluster Manager.<br>
-•	Cluster Manager 将会根据 Application 的资源需求, 通过一级分配将 Executor, 内存, CPU 等资源分配给 Application.<br>
-•	Driver 通过二级分配将 Executor 等资源分配给每一个任务, Application 最后通过 Driver 告诉 Executor 运行任务</li>
-</ol>
-<h5 id="4040端口-driver">4040端口-&gt;Driver</h5>
-<h5 id="8080端口-master">8080端口-&gt;Master</h5>
-<h5 id="8081端口-worker">8081端口-&gt;Worker</h5>
-<h3 id="spark-通用运行流程概述">Spark 通用运行流程概述</h3>
-<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582730179336.png" alt=""></figure>
-<ol>
-<li>任务提交后，都会先启动 Driver 程序；</li>
-<li>随后 Driver 向集群管理器注册应用程序；</li>
-<li>之后集群管理器根据此任务的配置文件分配 Executor 并启动该应用程序；</li>
-<li>当 Driver 所需的资源全部满足后，Driver 开始执行 main 函数，Spark 转换为懒执行，当执行到 Action 算子时开始反向推算，根据宽依赖进行 Stage 的划分，随后每一个 Stage 对应一个 Taskset，Taskset 中有多个Task；</li>
-<li>根据本地化原则，Task 会被分发到指定的 Executor 去执行，在任务执行的过程中，Executor 也会不断与 Driver 进行通信，报告任务运行情况。</li>
-</ol>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[SparkStreaming处理完数据写入redis]]></title>
-        <id>https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis</id>
-        <link href="https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis">
-        </link>
-        <updated>2020-02-26T14:27:36.000Z</updated>
-        <content type="html"><![CDATA[<h4 id="redisutil">RedisUtil</h4>
-<pre><code>package com.atguigu.day02.project.util
-
-import redis.clients.jedis.Jedis
-
-object RedisUtil {
-  /**
-   * 两种方式：
-   * 1.使用连接池
-   * 效率更高 连接会重用
-   * 实际情况 容易出现多线程bug
-   * 2.手动创建连接的客户端对象
-   * 用完务必关闭
-   */
-  val host = &quot;lwl007&quot;
-  val port = 6379
-    //获取客户端对象
-  def getClient = new Jedis(host, port)
-    //关闭客户端
-  def close(client: Jedis): Unit = {
-    if (client != null) client.close()
-  }
-}
-
-</code></pre>
-<h4 id="数据写入">数据写入</h4>
-<pre><code>    import org.json4s.JsonDSL._ //scala自带转json
-    import scala.collection.JavaConversions._ //scala和java集合互转
-    val key = &quot;last:hour:ads&quot;
-    adsIdAndHmCountIt.foreachRDD(rdd =&gt; {
-      rdd.foreachPartition((it: Iterator[(String, Iterable[(String, Int)])]) =&gt; {
-        //写入数据
-        if (it.hasNext) {
-          //建立连接
-          val client: Jedis = RedisUtil.getClient
-          val map: Map[String, String] = it.map {
-            case (adsId, hmCountIt) =&gt; {
-              //不加toMap [{},{}]  加toMap{K1:V1,K2:V2}
-              val hmCountItToMap: Map[String, Int] = hmCountIt.toMap
-              (adsId, JsonMethods.compact(JsonMethods.render(hmCountItToMap)))
-            }
-          }.toMap
-          client.hmset(key, map)
-          RedisUtil.close(client)
-        }
-      })
-    })
-</code></pre>
 ]]></content>
     </entry>
 </feed>
