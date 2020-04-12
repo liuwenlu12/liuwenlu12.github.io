@@ -1,0 +1,256 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>kafka | 刘文路的博客</title>
+<meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
+<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1586708561367">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://liuwenlu12.github.io//styles/main.css">
+
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://liuwenlu12.github.io/">
+  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1586708561367" alt="">
+  </a>
+  <h1 class="site-title">
+    刘文路的博客
+  </h1>
+  <p class="site-description">
+    与其仓皇追赶日落，不如静待漫天星辰
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              kafka
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-04-13
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>kafka（20件事）</p>
+<h4 id="基本信息">基本信息</h4>
+<pre><code>    1）kafka组成
+    2）安装多少台kafka： 2(生产者峰值的生产速率 * 副本数/100)+1=3
+    3）采用压测（生产者峰值的生产速率）
+    4）设置多少个副本：2-3个  2个的居多；  副本可以提供可靠性，但是会影响性能
+    5）设置多少个topic；一张表一个topic，适度聚合也是可以的。
+    6）数据默认保存多久：7天，  生产环境保存3天
+    7）kafka做没做 监控器  km  kmo  eg  用的自己开发的
+    8）isr leader挂了谁当老大，在isr里面的都可以当老大。 时间、条数； 新：时间
+    9）分区分配策略：
+        range（默认）多余任务发往低分区，容易导致数据倾斜
+        10个任务  3  1-4  5-7 8-10
+        10个任务 hash  10个序号，轮询
+        
+        randrobin：随机打散hash, 轮询，适当减少数据倾斜。
+    10）数据量计算
+        日活：100万  没人一天多条：100条   一天多少条日志=100万*100=1亿条
+        平均每秒多少条日志=1亿条/(3600*24)=1150条/s
+        1条日志大小多大：1kb（0.5-2k）
+        平均每秒多少m = 1m/s
+        
+        峰值：   50m/s以内   10m-30m/s
+        什么时候达到峰值：手纸 
+    11）硬盘大小：
+        每天的数据量（100g*2） * 3 天/0.7=
+    12）分区数
+        （1）创建一个只有1个分区的topic
+        （2）测试这个topic的producer吞吐量和consumer吞吐量。
+        （3）假设他们的值分别是Tp和Tc，单位可以是MB/s。
+       （4）然后假设总的目标吞吐量是Tt，那么分区数=Tt / min（Tp，Tc）
+        例如：producer吞吐量=20m/s；consumer吞吐量=50m/s，期望吞吐量100m/s；
+        分区数=100 / 20 =5分区
+        https://blog.csdn.net/weixin_42641909/article/details/89294698
+        分区数一般设置为：3-10个
+</code></pre>
+<h4 id="挂了">挂了</h4>
+<pre><code>    短时间内数据积压到flume channel
+    长时间，可以再次消费日志服务器的数据
+</code></pre>
+<h4 id="丢了">丢了</h4>
+<pre><code>    ack=0 1 -1
+    0: 发送过去，就不管了        可靠性最低，效率最高
+    1：发送过去，leader应答      可靠性一般，效率一般   
+    -1：发送过去，leader和follower共同参与应答。    可靠性最高，效率最低
+   在生产环境如何选择：
+    不会选择0；
+    普通的互联网行业，通常会选择1.
+    金融、对钱比较敏感的数据：选择-1
+</code></pre>
+<h4 id="重复了">重复了</h4>
+<pre><code>    幂等性+事务+ack=-1
+    下级处理（hive dwd  streaming内部处理）(group by 开窗id取第一条)
+</code></pre>
+<h4 id="积压了">积压了</h4>
+<pre><code>    （1）增加分区数，提高并发度， 分区数要和消费的CPU核数相等
+    （2）调整每批次拉取的数据  100条/s =》1000条/s  1亿/s(内存溢出)
+</code></pre>
+<h4 id="优化">优化</h4>
+<pre><code>    1）server
+        （1）计算密集型（加减乘除运算、算法）         比较消耗CPU资源       CPU+1
+        （2）IO密集型任务（数据进来，直接就出去了）   不消耗太多CPU资源    CPU*2
+        （3）日志保存3天
+        （4）副本设置为2
+    2）生产者文件
+        （1）配置压缩：none  gzip  snappy lz4
+    3）内存 默认1g   生产环境调整到4-6个g ,比如配置了7g和6g效果一样。 可以考虑增加集群台数。
+    4）Kafka 高效读写数据原因
+        （1）kafka是集群，分布式
+        （2）顺序读写 600m/s   随机读写100m/s
+        （3）零拷贝 不经过应用层
+    5） Kafka支持传输最大一条日志大小 
+        默认1m   server.properties调整单条传输日志大小。
+        
+    6）Kafka过期数据清理  删除  压缩</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF">基本信息</a></li>
+<li><a href="#%E6%8C%82%E4%BA%86">挂了</a></li>
+<li><a href="#%E4%B8%A2%E4%BA%86">丢了</a></li>
+<li><a href="#%E9%87%8D%E5%A4%8D%E4%BA%86">重复了</a></li>
+<li><a href="#%E7%A7%AF%E5%8E%8B%E4%BA%86">积压了</a></li>
+<li><a href="#%E4%BC%98%E5%8C%96">优化</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://liuwenlu12.github.io//post/flume">
+              <h3 class="post-title">
+                flume
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | 
+  <a class="rss" href="https://liuwenlu12.github.io//atom.xml" target="_blank">RSS</a>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+
+  let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+  // This should probably be throttled.
+  // Especially because it triggers during smooth scrolling.
+  // https://lodash.com/docs/4.17.10#throttle
+  // You could do like...
+  // window.addEventListener("scroll", () => {
+  //    _.throttle(doThatStuff, 100);
+  // });
+  // Only not doing it here to keep this Pen dependency-free.
+
+  window.addEventListener("scroll", event => {
+    let fromTop = window.scrollY;
+
+    mainNavLinks.forEach((link, index) => {
+      let section = document.getElementById(decodeURI(link.hash).substring(1));
+      let nextSection = null
+      if (mainNavLinks[index + 1]) {
+        nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+      }
+      if (section.offsetTop <= fromTop) {
+        if (nextSection) {
+          if (nextSection.offsetTop > fromTop) {
+            link.classList.add("current");
+          } else {
+            link.classList.remove("current");    
+          }
+        } else {
+          link.classList.add("current");
+        }
+      } else {
+        link.classList.remove("current");
+      }
+    });
+  });
+
+</script>
+
+      </div>
+    </div>
+  </body>
+</html>

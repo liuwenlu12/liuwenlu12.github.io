@@ -1,0 +1,255 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>flume | 刘文路的博客</title>
+<meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
+<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1586708561367">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://liuwenlu12.github.io//styles/main.css">
+
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://liuwenlu12.github.io/">
+  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1586708561367" alt="">
+  </a>
+  <h1 class="site-title">
+    刘文路的博客
+  </h1>
+  <p class="site-description">
+    与其仓皇追赶日落，不如静待漫天星辰
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              flume
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-04-13
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>flume</p>
+<h4 id="组成source-channel-sink-puttake事务">组成（source、channel、sink、put/take事务）</h4>
+<pre><code>    1）taildir source
+        （1）优点：断点续传、多目录
+        （2）哪个版本产生的：Apache 1.7  CDH 1.6
+        （3）三年前如何实现的断点续传？自定义source
+        （4）taildir 挂了怎么办？
+            重启就行吧，断点续传，不会丢数。 会导致数据重复
+            一种是解决（自定义source，采用事务，
+                    下一级处理（hive dwd /spark streaming））
+                    group by id  开窗(id)，只取窗口第一个值
+            二种不解决（要求不是特别准确的场景，普通的日志就没问题，金钱）
+        （5）tail dir 支不支持，递归遍历文件夹，读取文件？  
+             不支持。自定义source， 遍历文件夹+读文件
+             自定义可以实现任何功能。
+    2）channel
+        （1）filechannel：基于磁盘，传输慢，安全
+            100万个event
+        （2）memorychannel：基于内存，传输快，不安全
+            100个event
+        （3）KafkaChannel：数据存储（Kafka，磁盘），
+            传输快（memorychannel+kafkasink），安全， 只有下一级是Kafka才能用
+            1.6出来的Kafkachannel，但是没火，有一个bug
+            start_topic + 数据内容=&gt; 需要后续把start_topic去掉。
+            提供对应参数，取消头，很遗憾，不起作用。
+            1.7版本时解决了bug
+        （4）生产环境怎么选择
+            对可靠性要求比较高的行业（金融、对钱比较敏感的数据） filechannel 和Kafkachuannel
+            对可靠性要求不高的行业（普通的互联网行业,普通日志）  memorychannel和Kafkachuannel
+    3）sink
+        (1)HDFS sink
+            注意只要有hdfs的地方就要想到：小文件
+            时间（1-2个小时）、大小（128m）、event个数(0)
+            
+    4）事务take put    
+</code></pre>
+<h4 id="三大器拦截器-channel选择器-监控器">三大器（拦截器、channel选择器、监控器）</h4>
+<pre><code>    1）拦截器
+    （1）ETL拦截器
+        数据清洗
+        清洗规则：清洗掉不少{开头 }结尾的数据。
+        没有深入清洗的原因：影响性能。
+        服务器时间的判断：长度必须是13位，  所有内容必须是数字           
+    （2）分类型拦截器
+        a)分了哪些类型
+            启动日志
+            事件日志（一张表一个topic,也会做适当的聚合）
+            （商品列表、商品详情、商品点击；
+            点赞、评论、收藏
+            广告
+            故障
+            前台活跃、后台活跃、通知）
+        b)可以不用拦截器吗
+            可以， 如果不用的话，需要在hive的dwd层分类；或者再spark streaming内部处理
+        c）自定义拦截器步骤
+            定义一个类 实现interceptor接口，重写里面四个方法
+            （初始化、单独event、批量event、关闭），创建一个静态内部类builder
+            打包/上传/和配置文件关联
+    2）channel选择器   
+     （1）r（默认）  m
+     （2）r特点：把数据发往下一级所有通道
+          m特点：选择性发往下一级通道。
+    3）监控器 
+        （1）用什么对flume监控：Ganlia
+        （2）put或take尝试提交的次数远远大于最终成功的次数
+        （3）如果flume有问题怎么解决
+            a）提高自己能力；增加服务器的内存：flume_env.sh  4-6g内存
+            b）找兄弟，增加Flume服务器，对应增加日志服务器
+                （日志服务器配置：内存8g/16g/32g磁盘可以大一点 8t/16t磁盘  比较便宜）
+                （日志服务器有的公司计算到大数据集群，有的不算。 建议不算）     
+</code></pre>
+<h4 id="优化">优化</h4>
+<pre><code>    1）HDFS sink
+    2）put或take尝试提交的次数远远大于最终成功的次数
+    3）filechannel 存储数据多目录，存储到不同的磁盘，可以增加吞吐量
+    4）flume挂了有什么影响
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E7%BB%84%E6%88%90source-channel-sink-puttake%E4%BA%8B%E5%8A%A1">组成（source、channel、sink、put/take事务）</a></li>
+<li><a href="#%E4%B8%89%E5%A4%A7%E5%99%A8%E6%8B%A6%E6%88%AA%E5%99%A8-channel%E9%80%89%E6%8B%A9%E5%99%A8-%E7%9B%91%E6%8E%A7%E5%99%A8">三大器（拦截器、channel选择器、监控器）</a></li>
+<li><a href="#%E4%BC%98%E5%8C%96">优化</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://liuwenlu12.github.io//post/zookeeper">
+              <h3 class="post-title">
+                zookeeper
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | 
+  <a class="rss" href="https://liuwenlu12.github.io//atom.xml" target="_blank">RSS</a>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+
+  let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+  // This should probably be throttled.
+  // Especially because it triggers during smooth scrolling.
+  // https://lodash.com/docs/4.17.10#throttle
+  // You could do like...
+  // window.addEventListener("scroll", () => {
+  //    _.throttle(doThatStuff, 100);
+  // });
+  // Only not doing it here to keep this Pen dependency-free.
+
+  window.addEventListener("scroll", event => {
+    let fromTop = window.scrollY;
+
+    mainNavLinks.forEach((link, index) => {
+      let section = document.getElementById(decodeURI(link.hash).substring(1));
+      let nextSection = null
+      if (mainNavLinks[index + 1]) {
+        nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+      }
+      if (section.offsetTop <= fromTop) {
+        if (nextSection) {
+          if (nextSection.offsetTop > fromTop) {
+            link.classList.add("current");
+          } else {
+            link.classList.remove("current");    
+          }
+        } else {
+          link.classList.add("current");
+        }
+      } else {
+        link.classList.remove("current");
+      }
+    });
+  });
+
+</script>
+
+      </div>
+    </div>
+  </body>
+</html>

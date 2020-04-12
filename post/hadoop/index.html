@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Hadoop | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
-<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1586568269553">
+<link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1586708561367">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://liuwenlu12.github.io//styles/main.css">
@@ -20,7 +20,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://liuwenlu12.github.io/">
-  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1586568269553" alt="">
+  <img class="avatar" src="https://liuwenlu12.github.io//images/avatar.png?v=1586708561367" alt="">
   </a>
   <h1 class="site-title">
     刘文路的博客
@@ -80,7 +80,7 @@
                 2020-04-11
               </span>
               <span>
-                2 min read
+                3 min read
               </span>
               
             </div>
@@ -119,6 +119,40 @@ har/自定义inputformat<br>
     开启JVM重用
     如果没有小文件 不要开启JVM重用
 </code></pre>
+<h4 id="mapreduce">Mapreduce</h4>
+<pre><code>shuffle及其优化
+    ![](https://liuwenlu12.github.io//post-images/1586696107439.png)
+    1. map方法之后，reduce方法之前的混洗过程       
+    2. 溢写时排序 手段：快排 对谁排序：key的索引  按照什么规律：字典顺序
+    3. 进行了那些排序  map阶段：快排 归并  reduce阶段 归并 分组
+    4. 压缩 
+        1.  map输入端：文件大小(lzo需要自己创建索引\bzip2)（如果文件大于128m 要考虑是否切片 如果文件小于128m 小文件处理）
+        2. map输出端 考虑数据块  lzo snappy
+        3. reduce输出端：看需求  最终数据去哪？ 保存考虑压缩 下个map输入考虑是否切片
+  namenode默认内存8g  单任务内存8g  maptask默认内存1g reducetask默认1g 
+</code></pre>
+<h4 id="yarn">YARN</h4>
+<p>1）yarn工作机制<br>
+<img src="https://liuwenlu12.github.io//post-images/1586696325666.png" alt=""><br>
+2）调度器<br>
+（1）FIFO、容量、公平<br>
+（2）默认调度器是哪个？<br>
+Apache是容量<br>
+CDH是公平<br>
+（3）FIFO特点：<br>
+单队列、先进先出<br>
+（4）容量调度器特点：<br>
+支持多队列、由多个FIFO调度器组成。先进先出、多队列之间相互借用资源<br>
+（5）公平调度器特点<br>
+支持多队列、每个队列公平享有资源。<br>
+3）容量调度器默认几个队列<br>
+就一个default队列<br>
+4）生产环境如何设置队列<br>
+（1）按照框架 hive  spark  flink<br>
+（2）按照业务模块（用户行为、业务数据）<br>
+（再细分：订单、购物车、点赞、评论、收藏、退款）<br>
+解耦，降低风险。  递归死循环（退款）<br>
+队列分等级（重点业务：订单、购物车。 普通业务：点赞、评论、收藏）</p>
 
               </div>
               <div class="toc-container">
@@ -131,6 +165,8 @@ har/自定义inputformat<br>
 <ul>
 <li><a href="#%E5%85%A5%E9%97%A8">入门</a></li>
 <li><a href="#hdfs">HDFS</a></li>
+<li><a href="#mapreduce">Mapreduce</a></li>
+<li><a href="#yarn">YARN</a></li>
 </ul>
 </li>
 </ul>

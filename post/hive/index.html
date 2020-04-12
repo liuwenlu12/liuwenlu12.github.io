@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Spark内核 | 刘文路的博客</title>
+<title>hive | 刘文路的博客</title>
 <meta name="description" content="与其仓皇追赶日落，不如静待漫天星辰" />
 <link rel="shortcut icon" href="https://liuwenlu12.github.io//favicon.ico?v=1586708561367">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -73,11 +73,11 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              Spark内核
+              hive
             </h2>
             <div class="post-info">
               <span>
-                2020-02-26
+                2020-04-13
               </span>
               <span>
                 3 min read
@@ -87,54 +87,74 @@
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <h3 id="spark核心组件">Spark核心组件</h3>
-<ol>
-<li>Cluster Manager (分配的资源属于一级分配, 它将各个 Worker 上的内存, CPU 等资源分配给 Application, 但并不负责对 Executor 的资源的分配)
-<ol>
-<li>Master  (Standalone)</li>
-<li>ResourceManager (Yarn)</li>
-<li>MesosMaster (Mesos)</li>
-<li>Kubernetes  2.3.0新增 (docker配合)</li>
-</ol>
-</li>
-<li>Worker (工作节点 在 Yarn 部署模式下实际由 NodeManager 替代)
-<ol>
-<li>将自己的内存, CPU 等资源通过注册机制告知 Cluster Manager</li>
-<li>创建 Executor进程</li>
-<li>将资源和任务进一步分配给 Executor</li>
-<li>同步资源信息, Executor 状态信息给 ClusterManager 等.</li>
-</ol>
-</li>
-<li>Driver (Spark 驱动器节点，用于执行 Spark 任务中的 main 方法，负责实际代码的执行工作)
-<ol>
-<li>将用户程序转化为作业（Job）；</li>
-<li>在 Executor 之间调度任务（Task）；</li>
-<li>跟踪 Executor 的执行情况；</li>
-<li>通过 UI 展示查询运行情况；</li>
-</ol>
-</li>
-<li>Executor (Spark Executor 节点是负责在 Spark 作业中运行具体任务，任务彼此之间相互独立)        Spark 应用启动时，Executor 节点被同时启动，并且始终伴随着整个 Spark 应用的生命周期而存在。<br>
-如果有 Executor 节点发生了故障或崩溃，Spark 应用也可以继续执行，会将出错节点上的任务调度到其他 Executor 节点上继续运行。<br>
-Executor 有两个核心功能：</li>
-<li>负责运行组成 Spark 应用的任务，并将结果返回给驱动器（Driver）；</li>
-<li>它们通过自身的块管理器（Block Manager）为用户程序中要求缓存的 RDD 提供内存式存储。RDD 的数据是直接缓存在 Executor 进程内的，因此任务可以在运行时充分利用缓存数据加速运算。</li>
-<li>Application<br>
-• Application 通过 Spark API 将进行 RDD 的转换和 DAG 的构建, 并通过 Driver 将 Application 注册到 Cluster Manager.<br>
-•	Cluster Manager 将会根据 Application 的资源需求, 通过一级分配将 Executor, 内存, CPU 等资源分配给 Application.<br>
-•	Driver 通过二级分配将 Executor 等资源分配给每一个任务, Application 最后通过 Driver 告诉 Executor 运行任务</li>
-</ol>
-<h5 id="4040端口-driver">4040端口-&gt;Driver</h5>
-<h5 id="8080端口-master">8080端口-&gt;Master</h5>
-<h5 id="8081端口-worker">8081端口-&gt;Worker</h5>
-<h3 id="spark-通用运行流程概述">Spark 通用运行流程概述</h3>
-<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582730179336.png" alt=""></figure>
-<ol>
-<li>任务提交后，都会先启动 Driver 程序；</li>
-<li>随后 Driver 向集群管理器注册应用程序；</li>
-<li>之后集群管理器根据此任务的配置文件分配 Executor 并启动该应用程序；</li>
-<li>当 Driver 所需的资源全部满足后，Driver 开始执行 main 函数，Spark 转换为懒执行，当执行到 Action 算子时开始反向推算，根据宽依赖进行 Stage 的划分，随后每一个 Stage 对应一个 Taskset，Taskset 中有多个Task；</li>
-<li>根据本地化原则，Task 会被分发到指定的 Executor 去执行，在任务执行的过程中，Executor 也会不断与 Driver 进行通信，报告任务运行情况。</li>
-</ol>
+                <h4 id="组成">组成</h4>
+<h4 id="hive与mysql区别">hive与mysql区别</h4>
+<pre><code>            hive             mysql
+数据量     大                  小
+查询速度  （大数据快）        （小数据快）
+语法      hql(底层是mr)     sql(底层是sql引擎)
+        查询                 增删改查
+</code></pre>
+<h4 id="内部表与外部表区别送分">内部表与外部表区别（送分）</h4>
+<pre><code>    原始数据 和元数据
+    内部表删除数据：删除 原始数据 和元数据
+    外部表删除数据：只删除元数据
+    
+    在开发时什么情况创建外部表，是否创建过内部表？
+    多人共用的表，都是外部表。在生产环境绝大多数都是外部表。
+    自己使用的临时表，用内部表。
+</code></pre>
+<h4 id="4个by">4个by</h4>
+<pre><code>    order（全局排序）  sort（排序）  d（分区）  c（s和d字段相同时使用） 
+    在开发时：
+    order by：在企业里面用的不多，尤其是大企业。京东（OOM） 小公司数量不大，可以采用 
+    sort+d：配合使用。在企业中用的最多。
+    c:用的比较少。sort+d用他替代。
+</code></pre>
+<h4 id="系统函数">系统函数</h4>
+<pre><code>    dateDiff year month
+    日:date_sub date_add
+    月：date_formart  last day
+    周：next_day
+    解析json函数   get json object  
+    collect_set  concat_ws  concat
+</code></pre>
+<h4 id="自定义函数">自定义函数</h4>
+<pre><code>    1）自定义UDF（一进一出）行为单位
+        （1）解析公共字段
+        （2）自定义UDF步骤
+            定义类继承UDF，重新里面evaluate方法  String evaluate(key,line)
+            打包/上传/创建永久函数（jar包上传到集群路径）
+            创建完函数，发现jar有问题？  修改代码后再上传就OK
+        
+    2）自定义UDTF（一进多出，多进多出）30秒  实时推荐  页面退出
+        （1）解析事件字段（点赞、评论、收藏）（商品列表、商品详情、商品点击）（广告）（故障）
+        （2）自定义UDTF步骤
+            定义类继承Gen..UDTF  重新三个方法（初始化、关闭、process）
+            初始化方法，里面做了 定义返回值类型和名称
+            process处理具体业务逻辑
+    3）自定义UDF和UDTF我可以用get_json_object解析。为啥还要自定义？
+        方便定位问题 debug调试,  处理复杂json会更简单
+</code></pre>
+<h4 id="窗口函数">窗口函数</h4>
+<pre><code>    RANK
+    over
+    能够实现topn  现场手写
+</code></pre>
+<p>####优化<br>
+1）mapjoin<br>
+2）开启本地模式<br>
+3）行列过滤  join   where=》where join<br>
+4）创建分区表<br>
+5）小文件处理<br>
+（1）combinehiveinputformat  减少切片  1.txt  2.txt  3.txt =&gt;1个切片<br>
+（2）JVM重用<br>
+（3）merge<br>
+6）合理设置map个数max(最小值 min(块大小，最大值))和reduce个数<br>
+128m数据对应1g内存 1个maptask<br>
+7）采用压缩<br>
+8）采用列式存储<br>
+9）开启map端combiner（不影响最终业务逻辑）</p>
 
               </div>
               <div class="toc-container">
@@ -143,15 +163,17 @@ Executor 有两个核心功能：</li>
 <ul>
 <li>
 <ul>
-<li><a href="#spark%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6">Spark核心组件</a><br>
-*
+<li>
 <ul>
-<li><a href="#4040%E7%AB%AF%E5%8F%A3-driver">4040端口-&gt;Driver</a></li>
-<li><a href="#8080%E7%AB%AF%E5%8F%A3-master">8080端口-&gt;Master</a></li>
-<li><a href="#8081%E7%AB%AF%E5%8F%A3-worker">8081端口-&gt;Worker</a></li>
+<li><a href="#%E7%BB%84%E6%88%90">组成</a></li>
+<li><a href="#hive%E4%B8%8Emysql%E5%8C%BA%E5%88%AB">hive与mysql区别</a></li>
+<li><a href="#%E5%86%85%E9%83%A8%E8%A1%A8%E4%B8%8E%E5%A4%96%E9%83%A8%E8%A1%A8%E5%8C%BA%E5%88%AB%E9%80%81%E5%88%86">内部表与外部表区别（送分）</a></li>
+<li><a href="#4%E4%B8%AAby">4个by</a></li>
+<li><a href="#%E7%B3%BB%E7%BB%9F%E5%87%BD%E6%95%B0">系统函数</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0">自定义函数</a></li>
+<li><a href="#%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0">窗口函数</a></li>
 </ul>
 </li>
-<li><a href="#spark-%E9%80%9A%E7%94%A8%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B%E6%A6%82%E8%BF%B0">Spark 通用运行流程概述</a></li>
 </ul>
 </li>
 </ul>
@@ -166,9 +188,9 @@ Executor 有两个核心功能：</li>
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://liuwenlu12.github.io//post/sparkstreaming-chu-li-wan-shu-ju-xie-ru-redis">
+            <a href="https://liuwenlu12.github.io//post/kafka">
               <h3 class="post-title">
-                SparkStreaming处理完数据写入redis
+                kafka
               </h3>
             </a>
           </div>

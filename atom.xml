@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://liuwenlu12.github.io/</id>
     <title>刘文路的博客</title>
-    <updated>2020-04-11T01:24:57.387Z</updated>
+    <updated>2020-04-12T16:22:44.305Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://liuwenlu12.github.io/"/>
     <link rel="self" href="https://liuwenlu12.github.io//atom.xml"/>
@@ -10,6 +10,271 @@
     <logo>https://liuwenlu12.github.io//images/avatar.png</logo>
     <icon>https://liuwenlu12.github.io//favicon.ico</icon>
     <rights>All rights reserved 2020, 刘文路的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[hive]]></title>
+        <id>https://liuwenlu12.github.io//post/hive</id>
+        <link href="https://liuwenlu12.github.io//post/hive">
+        </link>
+        <updated>2020-04-12T16:21:30.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="组成">组成</h4>
+<h4 id="hive与mysql区别">hive与mysql区别</h4>
+<pre><code>            hive             mysql
+数据量     大                  小
+查询速度  （大数据快）        （小数据快）
+语法      hql(底层是mr)     sql(底层是sql引擎)
+        查询                 增删改查
+</code></pre>
+<h4 id="内部表与外部表区别送分">内部表与外部表区别（送分）</h4>
+<pre><code>    原始数据 和元数据
+    内部表删除数据：删除 原始数据 和元数据
+    外部表删除数据：只删除元数据
+    
+    在开发时什么情况创建外部表，是否创建过内部表？
+    多人共用的表，都是外部表。在生产环境绝大多数都是外部表。
+    自己使用的临时表，用内部表。
+</code></pre>
+<h4 id="4个by">4个by</h4>
+<pre><code>    order（全局排序）  sort（排序）  d（分区）  c（s和d字段相同时使用） 
+    在开发时：
+    order by：在企业里面用的不多，尤其是大企业。京东（OOM） 小公司数量不大，可以采用 
+    sort+d：配合使用。在企业中用的最多。
+    c:用的比较少。sort+d用他替代。
+</code></pre>
+<h4 id="系统函数">系统函数</h4>
+<pre><code>    dateDiff year month
+    日:date_sub date_add
+    月：date_formart  last day
+    周：next_day
+    解析json函数   get json object  
+    collect_set  concat_ws  concat
+</code></pre>
+<h4 id="自定义函数">自定义函数</h4>
+<pre><code>    1）自定义UDF（一进一出）行为单位
+        （1）解析公共字段
+        （2）自定义UDF步骤
+            定义类继承UDF，重新里面evaluate方法  String evaluate(key,line)
+            打包/上传/创建永久函数（jar包上传到集群路径）
+            创建完函数，发现jar有问题？  修改代码后再上传就OK
+        
+    2）自定义UDTF（一进多出，多进多出）30秒  实时推荐  页面退出
+        （1）解析事件字段（点赞、评论、收藏）（商品列表、商品详情、商品点击）（广告）（故障）
+        （2）自定义UDTF步骤
+            定义类继承Gen..UDTF  重新三个方法（初始化、关闭、process）
+            初始化方法，里面做了 定义返回值类型和名称
+            process处理具体业务逻辑
+    3）自定义UDF和UDTF我可以用get_json_object解析。为啥还要自定义？
+        方便定位问题 debug调试,  处理复杂json会更简单
+</code></pre>
+<h4 id="窗口函数">窗口函数</h4>
+<pre><code>    RANK
+    over
+    能够实现topn  现场手写
+</code></pre>
+<p>####优化<br>
+1）mapjoin<br>
+2）开启本地模式<br>
+3）行列过滤  join   where=》where join<br>
+4）创建分区表<br>
+5）小文件处理<br>
+（1）combinehiveinputformat  减少切片  1.txt  2.txt  3.txt =&gt;1个切片<br>
+（2）JVM重用<br>
+（3）merge<br>
+6）合理设置map个数max(最小值 min(块大小，最大值))和reduce个数<br>
+128m数据对应1g内存 1个maptask<br>
+7）采用压缩<br>
+8）采用列式存储<br>
+9）开启map端combiner（不影响最终业务逻辑）</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[kafka]]></title>
+        <id>https://liuwenlu12.github.io//post/kafka</id>
+        <link href="https://liuwenlu12.github.io//post/kafka">
+        </link>
+        <updated>2020-04-12T16:20:23.000Z</updated>
+        <content type="html"><![CDATA[<p>kafka（20件事）</p>
+<h4 id="基本信息">基本信息</h4>
+<pre><code>    1）kafka组成
+    2）安装多少台kafka： 2(生产者峰值的生产速率 * 副本数/100)+1=3
+    3）采用压测（生产者峰值的生产速率）
+    4）设置多少个副本：2-3个  2个的居多；  副本可以提供可靠性，但是会影响性能
+    5）设置多少个topic；一张表一个topic，适度聚合也是可以的。
+    6）数据默认保存多久：7天，  生产环境保存3天
+    7）kafka做没做 监控器  km  kmo  eg  用的自己开发的
+    8）isr leader挂了谁当老大，在isr里面的都可以当老大。 时间、条数； 新：时间
+    9）分区分配策略：
+        range（默认）多余任务发往低分区，容易导致数据倾斜
+        10个任务  3  1-4  5-7 8-10
+        10个任务 hash  10个序号，轮询
+        
+        randrobin：随机打散hash, 轮询，适当减少数据倾斜。
+    10）数据量计算
+        日活：100万  没人一天多条：100条   一天多少条日志=100万*100=1亿条
+        平均每秒多少条日志=1亿条/(3600*24)=1150条/s
+        1条日志大小多大：1kb（0.5-2k）
+        平均每秒多少m = 1m/s
+        
+        峰值：   50m/s以内   10m-30m/s
+        什么时候达到峰值：手纸 
+    11）硬盘大小：
+        每天的数据量（100g*2） * 3 天/0.7=
+    12）分区数
+        （1）创建一个只有1个分区的topic
+        （2）测试这个topic的producer吞吐量和consumer吞吐量。
+        （3）假设他们的值分别是Tp和Tc，单位可以是MB/s。
+       （4）然后假设总的目标吞吐量是Tt，那么分区数=Tt / min（Tp，Tc）
+        例如：producer吞吐量=20m/s；consumer吞吐量=50m/s，期望吞吐量100m/s；
+        分区数=100 / 20 =5分区
+        https://blog.csdn.net/weixin_42641909/article/details/89294698
+        分区数一般设置为：3-10个
+</code></pre>
+<h4 id="挂了">挂了</h4>
+<pre><code>    短时间内数据积压到flume channel
+    长时间，可以再次消费日志服务器的数据
+</code></pre>
+<h4 id="丢了">丢了</h4>
+<pre><code>    ack=0 1 -1
+    0: 发送过去，就不管了        可靠性最低，效率最高
+    1：发送过去，leader应答      可靠性一般，效率一般   
+    -1：发送过去，leader和follower共同参与应答。    可靠性最高，效率最低
+   在生产环境如何选择：
+    不会选择0；
+    普通的互联网行业，通常会选择1.
+    金融、对钱比较敏感的数据：选择-1
+</code></pre>
+<h4 id="重复了">重复了</h4>
+<pre><code>    幂等性+事务+ack=-1
+    下级处理（hive dwd  streaming内部处理）(group by 开窗id取第一条)
+</code></pre>
+<h4 id="积压了">积压了</h4>
+<pre><code>    （1）增加分区数，提高并发度， 分区数要和消费的CPU核数相等
+    （2）调整每批次拉取的数据  100条/s =》1000条/s  1亿/s(内存溢出)
+</code></pre>
+<h4 id="优化">优化</h4>
+<pre><code>    1）server
+        （1）计算密集型（加减乘除运算、算法）         比较消耗CPU资源       CPU+1
+        （2）IO密集型任务（数据进来，直接就出去了）   不消耗太多CPU资源    CPU*2
+        （3）日志保存3天
+        （4）副本设置为2
+    2）生产者文件
+        （1）配置压缩：none  gzip  snappy lz4
+    3）内存 默认1g   生产环境调整到4-6个g ,比如配置了7g和6g效果一样。 可以考虑增加集群台数。
+    4）Kafka 高效读写数据原因
+        （1）kafka是集群，分布式
+        （2）顺序读写 600m/s   随机读写100m/s
+        （3）零拷贝 不经过应用层
+    5） Kafka支持传输最大一条日志大小 
+        默认1m   server.properties调整单条传输日志大小。
+        
+    6）Kafka过期数据清理  删除  压缩</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[flume]]></title>
+        <id>https://liuwenlu12.github.io//post/flume</id>
+        <link href="https://liuwenlu12.github.io//post/flume">
+        </link>
+        <updated>2020-04-12T16:18:34.000Z</updated>
+        <content type="html"><![CDATA[<p>flume</p>
+<h4 id="组成source-channel-sink-puttake事务">组成（source、channel、sink、put/take事务）</h4>
+<pre><code>    1）taildir source
+        （1）优点：断点续传、多目录
+        （2）哪个版本产生的：Apache 1.7  CDH 1.6
+        （3）三年前如何实现的断点续传？自定义source
+        （4）taildir 挂了怎么办？
+            重启就行吧，断点续传，不会丢数。 会导致数据重复
+            一种是解决（自定义source，采用事务，
+                    下一级处理（hive dwd /spark streaming））
+                    group by id  开窗(id)，只取窗口第一个值
+            二种不解决（要求不是特别准确的场景，普通的日志就没问题，金钱）
+        （5）tail dir 支不支持，递归遍历文件夹，读取文件？  
+             不支持。自定义source， 遍历文件夹+读文件
+             自定义可以实现任何功能。
+    2）channel
+        （1）filechannel：基于磁盘，传输慢，安全
+            100万个event
+        （2）memorychannel：基于内存，传输快，不安全
+            100个event
+        （3）KafkaChannel：数据存储（Kafka，磁盘），
+            传输快（memorychannel+kafkasink），安全， 只有下一级是Kafka才能用
+            1.6出来的Kafkachannel，但是没火，有一个bug
+            start_topic + 数据内容=&gt; 需要后续把start_topic去掉。
+            提供对应参数，取消头，很遗憾，不起作用。
+            1.7版本时解决了bug
+        （4）生产环境怎么选择
+            对可靠性要求比较高的行业（金融、对钱比较敏感的数据） filechannel 和Kafkachuannel
+            对可靠性要求不高的行业（普通的互联网行业,普通日志）  memorychannel和Kafkachuannel
+    3）sink
+        (1)HDFS sink
+            注意只要有hdfs的地方就要想到：小文件
+            时间（1-2个小时）、大小（128m）、event个数(0)
+            
+    4）事务take put    
+</code></pre>
+<h4 id="三大器拦截器-channel选择器-监控器">三大器（拦截器、channel选择器、监控器）</h4>
+<pre><code>    1）拦截器
+    （1）ETL拦截器
+        数据清洗
+        清洗规则：清洗掉不少{开头 }结尾的数据。
+        没有深入清洗的原因：影响性能。
+        服务器时间的判断：长度必须是13位，  所有内容必须是数字           
+    （2）分类型拦截器
+        a)分了哪些类型
+            启动日志
+            事件日志（一张表一个topic,也会做适当的聚合）
+            （商品列表、商品详情、商品点击；
+            点赞、评论、收藏
+            广告
+            故障
+            前台活跃、后台活跃、通知）
+        b)可以不用拦截器吗
+            可以， 如果不用的话，需要在hive的dwd层分类；或者再spark streaming内部处理
+        c）自定义拦截器步骤
+            定义一个类 实现interceptor接口，重写里面四个方法
+            （初始化、单独event、批量event、关闭），创建一个静态内部类builder
+            打包/上传/和配置文件关联
+    2）channel选择器   
+     （1）r（默认）  m
+     （2）r特点：把数据发往下一级所有通道
+          m特点：选择性发往下一级通道。
+    3）监控器 
+        （1）用什么对flume监控：Ganlia
+        （2）put或take尝试提交的次数远远大于最终成功的次数
+        （3）如果flume有问题怎么解决
+            a）提高自己能力；增加服务器的内存：flume_env.sh  4-6g内存
+            b）找兄弟，增加Flume服务器，对应增加日志服务器
+                （日志服务器配置：内存8g/16g/32g磁盘可以大一点 8t/16t磁盘  比较便宜）
+                （日志服务器有的公司计算到大数据集群，有的不算。 建议不算）     
+</code></pre>
+<h4 id="优化">优化</h4>
+<pre><code>    1）HDFS sink
+    2）put或take尝试提交的次数远远大于最终成功的次数
+    3）filechannel 存储数据多目录，存储到不同的磁盘，可以增加吞吐量
+    4）flume挂了有什么影响
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[zookeeper]]></title>
+        <id>https://liuwenlu12.github.io//post/zookeeper</id>
+        <link href="https://liuwenlu12.github.io//post/zookeeper">
+        </link>
+        <updated>2020-04-12T16:17:40.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="选举机制">选举机制</h4>
+<pre><code>    半数机制
+</code></pre>
+<h4 id="常用命令">常用命令</h4>
+<pre><code>    ls  get  create
+</code></pre>
+<h4 id="生产环境安装多少台">生产环境安装多少台</h4>
+<pre><code>    安装奇数台：3  5  7   9  11
+    10台服务器 ：3台 
+    20台服务器： 5台
+    100台服务器：11台
+    不是越多越好  也不是越少越好
+    台数少，影响可靠性；  台数多，会影响通信时间</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Hadoop]]></title>
         <id>https://liuwenlu12.github.io//post/hadoop</id>
@@ -48,6 +313,40 @@ har/自定义inputformat<br>
     开启JVM重用
     如果没有小文件 不要开启JVM重用
 </code></pre>
+<h4 id="mapreduce">Mapreduce</h4>
+<pre><code>shuffle及其优化
+    ![](https://liuwenlu12.github.io//post-images/1586696107439.png)
+    1. map方法之后，reduce方法之前的混洗过程       
+    2. 溢写时排序 手段：快排 对谁排序：key的索引  按照什么规律：字典顺序
+    3. 进行了那些排序  map阶段：快排 归并  reduce阶段 归并 分组
+    4. 压缩 
+        1.  map输入端：文件大小(lzo需要自己创建索引\bzip2)（如果文件大于128m 要考虑是否切片 如果文件小于128m 小文件处理）
+        2. map输出端 考虑数据块  lzo snappy
+        3. reduce输出端：看需求  最终数据去哪？ 保存考虑压缩 下个map输入考虑是否切片
+  namenode默认内存8g  单任务内存8g  maptask默认内存1g reducetask默认1g 
+</code></pre>
+<h4 id="yarn">YARN</h4>
+<p>1）yarn工作机制<br>
+<img src="https://liuwenlu12.github.io//post-images/1586696325666.png" alt=""><br>
+2）调度器<br>
+（1）FIFO、容量、公平<br>
+（2）默认调度器是哪个？<br>
+Apache是容量<br>
+CDH是公平<br>
+（3）FIFO特点：<br>
+单队列、先进先出<br>
+（4）容量调度器特点：<br>
+支持多队列、由多个FIFO调度器组成。先进先出、多队列之间相互借用资源<br>
+（5）公平调度器特点<br>
+支持多队列、每个队列公平享有资源。<br>
+3）容量调度器默认几个队列<br>
+就一个default队列<br>
+4）生产环境如何设置队列<br>
+（1）按照框架 hive  spark  flink<br>
+（2）按照业务模块（用户行为、业务数据）<br>
+（再细分：订单、购物车、点赞、评论、收藏、退款）<br>
+解耦，降低风险。  递归死循环（退款）<br>
+队列分等级（重点业务：订单、购物车。 普通业务：点赞、评论、收藏）</p>
 ]]></content>
     </entry>
     <entry>
@@ -242,365 +541,6 @@ val sc = new SparkContext(conf)
 <h3 id="失败重试和黑名单">失败重试和黑名单</h3>
 <p>在记录Task失败次数过程中，会记录它上一次失败所在的Executor Id和Host，这样下次再调度这个Task时，会使用黑名单机制，避免它被调度到上一次失败的节点上，起到一定的容错作用。黑名单记录Task上一次失败所在的Executor Id和Host，以及其对应的“拉黑”时间，<br>
 “拉黑”时间是指这段时间内不要再往这个节点上调度这个Task了。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Spark 部署模式及源码分析]]></title>
-        <id>https://liuwenlu12.github.io//post/spark-bu-shu-mo-shi</id>
-        <link href="https://liuwenlu12.github.io//post/spark-bu-shu-mo-shi">
-        </link>
-        <updated>2020-02-27T08:13:12.000Z</updated>
-        <content type="html"><![CDATA[<p>Spark支持3种集群管理器（Cluster Manager），分别为：</p>
-<ol>
-<li>Standalone：独立模式，Spark 原生的简单集群管理器，自带完整的服务，可单独部署到一个集群中，无需依赖任何其他资源管理系统，使用 Standalone 可以很方便地搭建一个集群；</li>
-<li>Hadoop YARN：统一的资源管理机制，在上面可以运行多套计算框架，如 MR、Storm等。根据 Driver 在集群中的位置不同，分为 yarn client 和 yarn cluster；</li>
-<li>Apache Mesos：一个强大的分布式资源管理框架，它允许多种不同的框架部署在其上，包括 Yarn。</li>
-</ol>
-<h3 id="yarn-cluster-模式">YARN Cluster 模式</h3>
-<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582794556881.png" alt=""></figure>
-<ol>
-<li>执行脚本提交任务，实际是启动一个 SparkSubmit 的 JVM 进程；</li>
-<li>SparkSubmit 类中的 main方法反射调用Client的main方法；</li>
-<li>Client创建Yarn客户端，然后向Yarn发送执行指令：bin/java ApplicationMaster；</li>
-<li>Yarn框架收到指令后会在指定的NM中启动ApplicationMaster；</li>
-<li>ApplicationMaster启动Driver线程，执行用户的作业；</li>
-<li>AM向RM注册，申请资源；</li>
-<li>获取资源后AM向NM发送指令：bin/java CoarseGrainedExecutorBacken；</li>
-<li>启动ExecutorBackend, 并向driver注册.</li>
-<li>注册成功后, ExecutorBackend会创建一个Executor对象.</li>
-<li>Driver会给ExecutorBackend分配任务, 并监控任务的执行.<br>
-注意:<br>
-•	SparkSubmit、ApplicationMaster和CoarseGrainedExecutorBacken是独立的进程；<br>
-•	Client和Driver是独立的线程；<br>
-•	Executor是一个对象。</li>
-</ol>
-<pre><code>cluster: 
-bin/spark-submit \                                             
---class org.apache.spark.examples.SparkPi \
---master yarn \
---deploy-mode cluster \
-./examples/jars/spark-examples_2.11-2.1.1.jar 1000
-
--------
-SparkSubmit
-ApplicationMaster
-CoarseGrainedExecutorBackend
---------
-
-SparkSubmit
-    org.apache.spark.deploy.SparkSubmit
-
-
-    if (deployMode == CLIENT || isYarnCluster) {
-            // 如果是客户端模式, childMainClass 就是用户的类
-            // 集群模式下, childMainClass 被重新赋值为 org.apache.spark.deploy.yarn.Client
-            childMainClass = args.mainClass  // 用户主类
-            if (isUserJar(args.primaryResource)) {
-                childClasspath += args.primaryResource
-            }
-            if (args.jars != null) {
-                childClasspath ++= args.jars.split(&quot;,&quot;)
-            }
-        }
-    if (isYarnCluster) {
-            // 在 yarn 集群模式下, 使用yarn.Client来封装一下 user class
-            childMainClass = &quot;org.apache.spark.deploy.yarn.Client&quot;
-            if (args.isPython) {
-                childArgs += (&quot;--primary-py-file&quot;, args.primaryResource)
-                childArgs += (&quot;--class&quot;, &quot;org.apache.spark.deploy.PythonRunner&quot;)
-            } else if (args.isR) {
-                val mainFile = new Path(args.primaryResource).getName
-                childArgs += (&quot;--primary-r-file&quot;, mainFile)
-                childArgs += (&quot;--class&quot;, &quot;org.apache.spark.deploy.RRunner&quot;)
-            } else {
-                if (args.primaryResource != SparkLauncher.NO_RESOURCE) {
-                    childArgs += (&quot;--jar&quot;, args.primaryResource)
-                }
-                childArgs += (&quot;--class&quot;, args.mainClass)
-            }
-            if (args.childArgs != null) {
-                args.childArgs.foreach { arg =&gt; childArgs += (&quot;--arg&quot;, arg) }
-            }
-        }
-
-        childMainClass = &quot;org.apache.spark.deploy.yarn.Client&quot;
-            submitApplication()
-
-        // 核心代码: 确定 ApplicationMaster 类
-        val amClass =
-            if (isClusterMode) { // 如果是 cluster 模式
-                Utils.classForName(&quot;org.apache.spark.deploy.yarn.ApplicationMaster&quot;).getName
-            } else { // 如果是 client 模式
-                Utils.classForName(&quot;org.apache.spark.deploy.yarn.ExecutorLauncher&quot;).getName
-            }
-
-        yarnClient.submitApplication(appContext)
-
-        spark-submit进程执行完毕
-
-ApplicationMaster
-        runDriver()
-        注册AM 让NM要启动的类
-        org.apache.spark.executor.CoarseGrainedExecutorBackend
-
-        执行完毕, 但是AM并不会退出,  dirverThread.join()
-CoarseGrainedExecutorBackend
-        executor进程
-        // 获取到 driver 的 RpcEndpointRef  (DriverEndpoint是在sparkContext中创建)
-            val driver: RpcEndpointRef = fetcher.setupEndpointRefByURI(driverUrl)
-
-        ref.ask[Boolean](RegisterExecutor(executorId, self, hostname, cores, extractLogUrls))
-
-        driver端:
-            executorRef.send(RegisteredExecutor)
-        executor端:
-            executor = new Executor(executorId, hostname, env, userClassPath, isLocal = false)
-
-</code></pre>
-<p><strong>Cluster 模式概述</strong>：脚本在客户端上提交执行之后，执行SparkSubmit的main方法，main方法中会反射一个cilent类，执行client的main方法，封装一个指令(bin/java Application)交给RM,RM会选择一台NodeManager启动AM,AM会运行Driver(运行用户类的main方法),同时AM会向RM申请资源和容器,封装并且发送一个指令(bin/java CoarseGrainedExecutorBackend),让其他NodeManager启动ExecutorBackend进程,ExecutorBackend进程会向Driver进行反向注册(RegisterExecutor),Driver返回一个成功注册的信息,Executor进程会创建一个Executor对象,之后就可以进行任务分配</p>
-<p><strong>SparkSubmit  Application ExecutorBackend三个进程</strong></p>
-<h3 id="yarn-client-模式">Yarn Client 模式</h3>
-<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582800089613.png" alt=""></figure>
-<ol>
-<li>执行脚本提交任务，实际是启动一个SparkSubmit的 JVM 进程；</li>
-<li>SparkSubmit伴生对象中的main方法反射调用用户代码的main方法；</li>
-<li>启动Driver线程，执行用户的作业，并创建ScheduleBackend；</li>
-<li>YarnClientSchedulerBackend向RM发送指令：bin/java ExecutorLauncher；</li>
-<li>Yarn框架收到指令后会在指定的NM中启动ExecutorLauncher（实际上还是调用ApplicationMaster的main方法）；</li>
-</ol>
-<pre><code>object ExecutorLauncher {
-  def main(args: Array[String]): Unit = {
-    ApplicationMaster.main(args)
-  }
-}
-</code></pre>
-<ol start="6">
-<li>AM向RM注册，申请资源；</li>
-<li>获取资源后AM向NM发送指令：bin/java CoarseGrainedExecutorBacken；</li>
-<li>后面和cluster模式一致<br>
-注意：</li>
-</ol>
-<ul>
-<li>SparkSubmit、ExecutorLauncher和CoarseGrainedExecutorBacken是独立的进程；</li>
-<li>driver不是一个子线程,而是直接运行在SparkSubmit进程的main线程中, 所以sparkSubmit进程不能退出.</li>
-</ul>
-<pre><code>bin/spark-submit \                                            
---class org.apache.spark.examples.SparkPi \
---master yarn \
---deploy-mode client \
-./examples/jars/spark-examples_2.11-2.1.1.jar 1000
-
-------
-SparkSubmit
-ExecutorLauncher  (am)
-CoarseGrainedExecutorBackend
-
-SparkSubmit
-    childMainClass = args.mainClass  // 用户主类
-
-    执行用户类的main方法(执行driver)
-        是在SparkSubmit的主线程中执行
-        (cluster 模式driver跟着: am, am启动了一个子线程)
-
-    用户类里面, 首先就是在创建和初始化SaprkContext
-
-    SparkContext的初始化:
-        val (sched, ts): (SchedulerBackend, TaskScheduler) = SparkContext.createTaskScheduler(this, master, deployMode)
-        
-        _ts.start()
-            backend.start()  
-            CoarseGrainedSchedulerBackend: start
-                driverEndpoint = createDriverEndpointRef(properties)
-
-            client.submitApplication
-
-                org.apache.spark.deploy.yarn.ExecutorLauncher
-                为什么要换个名字：目的是为了区分是运行的client还是cluster模式
-
-            启动DrvierEndPoint
-                makeOffers
-                    launchTasks(scheduler.resourceOffers(workOffers))
-
-</code></pre>
-<p><strong>Client模式概述</strong>：脚本submit提交，脚本启动，执行SparkSubmit的main方法(同时Driver也在SparkSubmit主线程中启动)，Driver的执行会初始化SchedulerBackend, TaskScheduler，其中的YarnCilentSchedulerBackend中有个start方法封装一个bin/java ExcutorLauncher指令交给RM,RM会找一个NodeManager执行ExcutorLauncher(AM),ExcutorLauncher启动后会向RM申请资源，容器.AM封装发送指令， 然后会根据资源和容器去分配NodeManager启动ExcutorBackend进程，ExcutorBackend进程会向进行Driver注册(使用RegisterExecutor),返回注册成功之后，创建一个Executor对象，就可以分配任务。</p>
-<h3 id="client模式-和-cluster模式的区别">Client模式 和 Cluster模式的区别</h3>
-<pre><code>1. spark-submit中反射childMainClass不同
-    cluster:Client    childMainClass = &quot;org.apache.spark.deploy.yarn.Client&quot;
-    client:用户类      childMainClass = args.mainClass
-2. driver位置
-    cluster:位于ApplicationMaster进程中，起一个子线程
-    client:位于SparkSubmit的主线程
-3. 启动AM
-    cluster:ApplicationMaster
-    client:ExecutorLauncher
-
-  在cluster模式下，如果AM一旦启动，SparkSubmit还有用吗？   没有用 可以杀掉 一直在打印日志
-  在client模式下 ，不能杀  杀了Driver也没了
-</code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[笔记]]></title>
-        <id>https://liuwenlu12.github.io//post/bi-ji</id>
-        <link href="https://liuwenlu12.github.io//post/bi-ji">
-        </link>
-        <updated>2020-02-26T16:08:30.000Z</updated>
-        <content type="html"><![CDATA[<p>···<br>
-saveAsTable:<br>
-1. 如果表不存在, 则会自动创建<br>
-2. 如果表存在(append),  则后面存储的数据, 元数据的顺序要与表中的元数据的顺序一致<br>
-表内数据:<br>
-a(int)     b(string)<br>
-新的数据:<br>
-aa(int)    bb(string)<br>
-3. 列名可以不一致</p>
-<p>insertInto<br>
-1. 要求表必须存在<br>
-2. 要求列名必须一致.<br>
-表内数据:<br>
-a(int)  b(String)</p>
-<pre><code>    新的数据:
-        b(string)  a(int)
-</code></pre>
-<p>···</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[ Spark集群启动流程分析]]></title>
-        <id>https://liuwenlu12.github.io//post/spark-ji-qun-qi-dong-liu-cheng-fen-xi</id>
-        <link href="https://liuwenlu12.github.io//post/spark-ji-qun-qi-dong-liu-cheng-fen-xi">
-        </link>
-        <updated>2020-02-26T15:53:46.000Z</updated>
-        <content type="html"><![CDATA[<h4 id="流程">流程</h4>
-<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582732625980.png" alt=""></figure>
-<h4 id="master服务端口-7077">Master服务端口 7077</h4>
-<pre><code>   1 val args = new MasterArguments(argStrings, conf)  封装参数
-
-  2  val (rpcEnv, _, _) = startRpcEnvAndEndpoint(args.host, args.port, args.webUiPort, conf)   启动RPC，Endpoint
-
- 3 val rpcEnv = RpcEnv.create(SYSTEM_NAME, host, port, conf, securityMgr) 创建rpcEnv
-
-4     new NettyRpcEnvFactory().create(config) //Netty
-
-5    if (!config.clientMode) //集群模式为true
-
-6           Utils.startServiceOnPort(config.port, startNettyRpcEnv, sparkConf, config.name)._1  启动服务NettyRPCEnv
-
-7           val masterEndpoint = rpcEnv.setupEndpoint(ENDPOINT_NAME,
-      new Master(rpcEnv, rpcEnv.address, webUiPort, securityMgr, conf)) 启动Endpoint
-
-8      dispatcher.registerRpcEndpoint(name, endpoint) //注册到dispatcher
-            消息分发器 提升异步能力
-        
----------------------------------------------
-private[spark] trait RpcEnvFactory {
- * An end point for the RPC that defines what functions to trigger given a message.
- *
- * It is guaranteed that `onStart`, `receive` and `onStop` will be called in sequence.
- *
- * The life-cycle of an endpoint is:
- *
- * constructor -&gt; onStart -&gt; receive* -&gt; onStop
-
-* Note: `receive` can be called concurrently. If you want `receive` to be thread-safe, please use
- * [[ThreadSafeRpcEndpoint]]
- *
- * If any error is thrown from one of [[RpcEndpoint]] methods except `onError`, `onError` will be
- * invoked with the cause. If `onError` throws an error, [[RpcEnv]] will ignore it.
----------------------------------------------
- 9 onstart --&gt;
- checkForWorkerTimeOutTask = forwardMessageThread.scheduleAtFixedRate//固定检查worker是否超时  默认每分钟一次  自己给自己发消息         self.send(CheckForWorkerTimeOut)
- 10 receive--&gt;
-  override def receive: PartialFunction[Any, Unit] 
-     case CheckForWorkerTimeOut =&gt;
-      timeOutDeadWorkers()//移除worker
-</code></pre>
-<h4 id="worker">Worker</h4>
-<pre><code> 1 val args = new WorkerArguments(argStrings, conf)  封装参数
-    
- 2 val rpcEnv = startRpcEnvAndEndpoint(args.host, args.port, args.webUiPort, args.cores,
-      args.memory, args.masters, args.workDir, conf = conf) 启动RPC，Endpoint
-
-  val rpcEnv = RpcEnv.create(systemName, host, port, conf, securityMgr) 创建rpcEnv
-
- val masterAddresses = masterUrls.map(RpcAddress.fromSparkURL(_))  Mster地址(注册用  高可用有多个  都发送) 
-
- rpcEnv.setupEndpoint(ENDPOINT_NAME, new Worker(rpcEnv, webUiPort, cores, memory,
-      masterAddresses, ENDPOINT_NAME, workDir, conf, securityMgr))   setupEndpoint
-
-3 new Worker--&gt;
-
-def assert(assertion: Boolean) {
-    if (!assertion)
-      throw new java.lang.AssertionError(&quot;assertion failed&quot;)  已注册抛异常
-  }
-
-  4  registerWithMaster()  //注册自己
-
-    registerMasterFutures = tryRegisterAllMasters() //所有master注册
-
-     val masterEndpoint = rpcEnv.setupEndpointRef(masterAddress, Master.ENDPOINT_NAME)
-     registerWithMaster(masterEndpoint)
-        //获取ref 注册
-
-  masterEndpoint.ask[RegisterWorkerResponse] RegisterWorker(
-      workerId, host, port, self, cores, memory, workerWebUiUrl))
- //发信息 希望Mster回一RegisterWorkerResponse  给master自己所有信息
-
-  master端   override def receiveAndReply(context: RpcCallContext): PartialFunction 
-     if (state == RecoveryState.STANDBY) {
-        context.reply(MasterInStandby)   //自己STANDBY
-....各种交互
-           5   if (registerWorker(worker)) //Master给与注册
-
-   workers.filter { w =&gt;
-      (w.host == worker.host &amp;&amp; w.port == worker.port) &amp;&amp; (w.state == WorkerState.DEAD)
-    }.foreach { w =&gt;
-      workers -= w
-    }   //曾经注册过 状态死  
-
-  context.reply(RegisteredWorker(self, masterWebUiUrl))//响应worker 告诉worker我是哪个master
-
-
-logInfo(&quot;Successfully registered with master &quot; + masterRef.address.toSparkURL)
-      registered = true
-     changeMaster(masterRef, masterWebUiUrl) //改地址
-forwordMessageScheduler.scheduleAtFixedRate //发心跳
-
-      if (connected) { sendToMaster(Heartbeat(workerId, self)) }  //心跳
-      case Some(masterRef) =&gt; masterRef.send(message)
-
-         workerInfo.lastHeartbeat = System.currentTimeMillis() //Master端 一分钟超时  十五秒心跳
-
-master如果没起来   用定时器尝试继续注册自己  16次（6+10）
-
-</code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Spark通讯架构]]></title>
-        <id>https://liuwenlu12.github.io//post/spark-tong-xun-jia-gou</id>
-        <link href="https://liuwenlu12.github.io//post/spark-tong-xun-jia-gou">
-        </link>
-        <updated>2020-02-26T15:18:36.000Z</updated>
-        <content type="html"><![CDATA[<h4 id="spark-内置-rpc-框架">Spark 内置 RPC 框架</h4>
-<p>在 Spark 中, 很多地方都涉及到网络通讯, 比如 Spark 各个组件间的消息互通, 用户文件与 Jar 包的上传, 节点间的 Shuffle 过程, Block 数据的复制与备份等.</p>
-<ol>
-<li>在 Spark0.x.x 与 Spark1.x.x 版本中, 组件间的消息通信主要借助于 Akka.</li>
-<li>在 Spark1.3 中引入了 Netty 通信框架. Akka要求message发送端和接收端有相同的版本, 所以为了避免 Akka 造成的版本问题，并给用户的应用更大灵活性，决定使用更通用的 RPC 实现，也就是现在的 Netty 来替代 Akka。</li>
-<li>Spark1.6 中 Akka 和 Netty 可以配置使用。Netty 完全实现了 Akka 在Spark 中的功能。</li>
-<li>从Spark2.0.0, Akka 被移除.</li>
-</ol>
-<h4 id="actor-模型">Actor 模型</h4>
-<figure data-type="image" tabindex="1"><img src="https://liuwenlu12.github.io//post-images/1582730544913.png" alt=""></figure>
-<h4 id="netty-通信架构">Netty 通信架构</h4>
-<p>Netty 借鉴了 Akka 的 Actor 模型<br>
-Spark通讯框架中各个组件（Client/Master/Worker）可以认为是一个个独立的实体，各个实体之间通过消息来进行通信。</p>
-<figure data-type="image" tabindex="2"><img src="https://liuwenlu12.github.io//post-images/1582730593467.png" alt=""></figure>
-<p>详细<br>
-<img src="https://liuwenlu12.github.io//post-images/1582730972828.png" alt=""></p>
-<p>高层俯视图<br>
-<img src="https://liuwenlu12.github.io//post-images/1582731230217.png" alt=""></p>
 ]]></content>
     </entry>
 </feed>
